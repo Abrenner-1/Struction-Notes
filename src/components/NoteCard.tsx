@@ -37,6 +37,8 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
   
   // Add dark mode variants for legacy backgrounds
   if (!bgClass.includes('dark:')) {
+    if (bgClass === 'bg-white') bgClass = 'bg-white dark:bg-slate-900';
+    if (bgClass === 'bg-slate-50') bgClass = 'bg-slate-50 dark:bg-slate-950';
     if (bgClass === 'bg-blue-50') bgClass = 'bg-blue-50 dark:bg-blue-950/20';
     if (bgClass === 'bg-emerald-50') bgClass = 'bg-emerald-50 dark:bg-emerald-950/20';
     if (bgClass === 'bg-orange-50') bgClass = 'bg-orange-50 dark:bg-orange-950/20';
@@ -118,7 +120,7 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
         <div className="relative">
           <div 
             className={cn(
-              "text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose prose-slate prose-sm max-w-none break-words overflow-hidden transition-all duration-300",
+              "text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose prose-slate dark:prose-invert prose-sm max-w-none break-words overflow-hidden transition-all duration-300",
               "hyphens-none text-wrap-pretty whitespace-pre-wrap [overflow-wrap:anywhere]",
               !isExpanded && "max-h-[30rem]" 
             )}
