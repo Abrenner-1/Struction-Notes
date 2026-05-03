@@ -30,12 +30,12 @@ export function NoteModal({ onClose, projectId, user, initialData, nextPosition,
   const colors = [
     { name: 'Default', value: 'bg-white dark:bg-slate-900' },
     { name: 'Mist', value: 'bg-slate-50 dark:bg-slate-950' },
-    { name: 'Sky', value: 'bg-blue-50' },
-    { name: 'Sage', value: 'bg-emerald-50' },
-    { name: 'Cream', value: 'bg-orange-50' },
-    { name: 'Lavender', value: 'bg-purple-50' },
-    { name: 'Sand', value: 'bg-stone-100' },
-    { name: 'Paper', value: 'bg-amber-50' },
+    { name: 'Sky', value: 'bg-blue-50 dark:bg-blue-950/20' },
+    { name: 'Sage', value: 'bg-emerald-50 dark:bg-emerald-950/20' },
+    { name: 'Cream', value: 'bg-orange-50 dark:bg-orange-950/20' },
+    { name: 'Lavender', value: 'bg-purple-50 dark:bg-purple-950/20' },
+    { name: 'Sand', value: 'bg-stone-100 dark:bg-stone-900/20' },
+    { name: 'Paper', value: 'bg-amber-50 dark:bg-amber-950/20' },
   ];
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

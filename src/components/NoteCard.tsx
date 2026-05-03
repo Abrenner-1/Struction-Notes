@@ -33,7 +33,17 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
     'General': 'text-slate-500 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700',
   };
 
-  const bgClass = note.backgroundColor || 'bg-white dark:bg-slate-900';
+  let bgClass = note.backgroundColor || 'bg-white dark:bg-slate-900';
+  
+  // Add dark mode variants for legacy backgrounds
+  if (!bgClass.includes('dark:')) {
+    if (bgClass === 'bg-blue-50') bgClass = 'bg-blue-50 dark:bg-blue-950/20';
+    if (bgClass === 'bg-emerald-50') bgClass = 'bg-emerald-50 dark:bg-emerald-950/20';
+    if (bgClass === 'bg-orange-50') bgClass = 'bg-orange-50 dark:bg-orange-950/20';
+    if (bgClass === 'bg-purple-50') bgClass = 'bg-purple-50 dark:bg-purple-950/20';
+    if (bgClass === 'bg-stone-100') bgClass = 'bg-stone-100 dark:bg-stone-900/20';
+    if (bgClass === 'bg-amber-50') bgClass = 'bg-amber-50 dark:bg-amber-950/20';
+  }
 
   const handleDelete = async () => {
     await onDelete();
