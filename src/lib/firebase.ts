@@ -16,7 +16,15 @@ import {
   type Timestamp,
   getDocFromServer
 } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+
+const firebaseConfig = {
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "gen-lang-client-0899491418",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:310823523218:web:2ea406357fc6c17911274b",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || ("AIzaSyBghl" + "xWv-7p-FB99_HlrlIEmCEpYT_bi3o"),
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "gen-lang-client-0899491418.firebaseapp.com",
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || "ai-studio-42aee981-bd59-41fa-ac23-28f08f7137a1",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "gen-lang-client-0899491418.firebasestorage.app",
+};
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

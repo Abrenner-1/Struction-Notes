@@ -21,16 +21,16 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
   }, [isHighlighted]);
 
   const typeColors: Record<NoteType, string> = {
-    'Progress': 'text-blue-600 bg-blue-50 border border-blue-100',
-    'Safety': 'text-emerald-600 bg-emerald-50 border border-emerald-100',
-    'Delivery': 'text-orange-600 bg-orange-50 border border-orange-100',
-    'Meeting': 'text-purple-600 bg-purple-50 border border-purple-100',
-    'Issue': 'text-red-600 bg-red-50 border border-red-100',
-    'RFI': 'text-amber-600 bg-amber-50 border border-amber-100',
-    'Submittal': 'text-cyan-600 bg-cyan-50 border border-cyan-100',
-    'Punch List': 'text-rose-600 bg-rose-50 border border-rose-100',
-    'Daily Report': 'text-indigo-600 bg-indigo-50 border border-indigo-100',
-    'General': 'text-slate-500 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700',
+    'Progress': 'text-blue-600 bg-blue-50 border border-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50',
+    'Safety': 'text-emerald-600 bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50',
+    'Delivery': 'text-orange-600 bg-orange-50 border border-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-900/50',
+    'Meeting': 'text-purple-600 bg-purple-50 border border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-900/50',
+    'Issue': 'text-red-600 bg-red-50 border border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50',
+    'RFI': 'text-amber-600 bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50',
+    'Submittal': 'text-cyan-600 bg-cyan-50 border border-cyan-100 dark:bg-cyan-950/30 dark:text-cyan-400 dark:border-cyan-900/50',
+    'Punch List': 'text-rose-600 bg-rose-50 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/50',
+    'Daily Report': 'text-indigo-600 bg-indigo-50 border border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50',
+    'General': 'text-slate-500 bg-slate-50 border border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800',
   };
 
   let bgClass = note.backgroundColor || 'bg-white dark:bg-slate-900';
@@ -71,7 +71,7 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
             <span className={cn("text-[10px] font-bold uppercase px-2 py-0.5 rounded shadow-sm", typeColors[note.type])}>
               {note.type}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded border border-white/50">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-2 py-0.5 rounded border border-white/50 dark:border-slate-700/50">
               {note.date ? format(parseISO(note.date), 'MMM dd, yyyy') : 'No Date'}
             </span>
           </div>
@@ -122,6 +122,7 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
             className={cn(
               "text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose prose-slate dark:prose-invert prose-sm max-w-none break-words overflow-hidden transition-all duration-300",
               "hyphens-none text-wrap-pretty whitespace-pre-wrap [overflow-wrap:anywhere]",
+              "[&_*]:dark:!text-slate-300 [&_*]:dark:!bg-transparent",
               !isExpanded && "max-h-[30rem]" 
             )}
             style={!isExpanded ? { maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' } : {}}
