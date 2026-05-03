@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-navy: #0a1120;
+  --color-brand-orange: #f26624;
+
+  /* Precision sampling from the provided images */
+  --color-slate-950: #050811;
+  --color-slate-900: #0a1120;
+  --color-slate-800: #141b2d;
+  --color-slate-700: #1e293b;
+
+  /* Override default orange to match the logo exactly */
+  --color-orange-500: #f26624;
+  --color-orange-600: #d14d10;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .custom-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Rich Text Reset/Styles */
+  .prose-xs {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  .prose p {
+    margin-bottom: 0.5rem;
+  }
+  .prose ul {
+    list-style-type: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose ol {
+    list-style-type: decimal;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+  .prose h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .prose h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem; }
+  
+  /* Quill Editor Overrides */
+  .ql-container.ql-snow {
+    border: none !important;
+    font-family: inherit !important;
+  }
+  .ql-toolbar.ql-snow {
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f8fafc;
+  }
+  .ql-editor {
+    min-height: 100px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    text-align: left !important;
+    hyphens: none !important;
+  }
+  .ql-editor p {
+    margin-bottom: 0.5rem;
+  }
+  .ql-editor ul, .ql-editor ol {
+    padding-left: 1.5rem !important;
+  }
+  .ql-editor li {
+    margin-bottom: 0.25rem;
+  }
+
+  /* Quill Layout Helpers */
+  .quill-editor-standard .ql-container {
+    height: 200px !important;
+  }
+  .quill-editor-full {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+  }
+  .quill-editor-full .ql-container {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+  .quill-editor-full .ql-toolbar {
+    flex-shrink: 0 !important;
+  }
+}

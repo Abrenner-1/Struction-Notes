@@ -1,0 +1,535 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test document
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Reuseable helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn();
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Projects
+    match /projects/{projectId} {
+      function isValidProject(data) {
+        return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+               data.ownerId == request.auth.uid &&
+               data.createdAt is timestamp &&
+               (!('description' in data) || data.description is string) &&
+               (!('location' in data) || data.location is string) &&
+               (!('substantialCompletionDate' in data) || data.substantialCompletionDate is string || data.substantialCompletionDate == null);
+      }
+
+      function isProjectOwner() {
+        return get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+      }
+
+      allow create: if isVerified() && isValidProject(incoming());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isOwner(existing().ownerId);
+      allow update: if isSignedIn() && isOwner(existing().ownerId) && isValidProject(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isOwner(existing().ownerId);
+
+      // Notes
+      match /notes/{noteId} {
+        function isValidNote(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+                 data.type in ['Progress', 'Safety', 'Delivery', 'Meeting', 'Issue', 'RFI', 'Submittal', 'Punch List', 'Daily Report', 'General'] &&
+                 (
+                   ('ownerId' in data && data.ownerId == request.auth.uid) ||
+                   ('authorId' in data && data.authorId == request.auth.uid)
+                 );
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidNote(incoming()) && 
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidNote(incoming()) &&
+                         (
+                           ( 'ownerId' in incoming() && 'ownerId' in existing() && incoming().ownerId == existing().ownerId ) ||
+                           ( 'authorId' in incoming() && 'authorId' in existing() && incoming().authorId == existing().authorId )
+                         ) &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Tasks
+      match /tasks/{taskId} {
+        function isValidTask(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+                 (
+                   ('ownerId' in data && data.ownerId == request.auth.uid) ||
+                   ('authorId' in data && data.authorId == request.auth.uid)
+                 );
+        }
+
+        allow create: if isVerified() && isProjectOwner() && isValidTask(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidTask(incoming()) &&
+                         (
+                           ( 'ownerId' in incoming() && 'ownerId' in existing() && incoming().ownerId == existing().ownerId ) ||
+                           ( 'authorId' in incoming() && 'authorId' in existing() && incoming().authorId == existing().authorId )
+                         ) &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Notebook Pages
+      match /pages/{pageId} {
+        function isValidPage(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() <= 200 &&
+                 (
+                   ('ownerId' in data && data.ownerId == request.auth.uid) ||
+                   ('authorId' in data && data.authorId == request.auth.uid)
+                 );
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidPage(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidPage(incoming()) &&
+                         (
+                           ( 'ownerId' in incoming() && 'ownerId' in existing() && incoming().ownerId == existing().ownerId ) ||
+                           ( 'authorId' in incoming() && 'authorId' in existing() && incoming().authorId == existing().authorId )
+                         ) &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Schedule Items
+      match /scheduleItems/{itemId} {
+        function isValidScheduleItem(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+                 (
+                   ('ownerId' in data && data.ownerId == request.auth.uid) ||
+                   ('authorId' in data && data.authorId == request.auth.uid)
+                 );
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidScheduleItem(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidScheduleItem(incoming()) &&
+                         (
+                           ( 'ownerId' in incoming() && 'ownerId' in existing() && incoming().ownerId == existing().ownerId ) ||
+                           ( 'authorId' in incoming() && 'authorId' in existing() && incoming().authorId == existing().authorId )
+                         ) &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+    // Meetings
+      match /meetings/{meetingId} {
+        function isValidMeeting(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+                 data.ownerId == request.auth.uid &&
+                 data.date is timestamp &&
+                 (!('location' in data) || data.location is string) &&
+                 (!('attendees' in data) || data.attendees is string) &&
+                 (!('minutes' in data) || data.minutes is string) &&
+                 (!('followUpRequired' in data) || data.followUpRequired is bool) &&
+                 (!('parentMeetingId' in data) || data.parentMeetingId == null || data.parentMeetingId is string);
+        }
+
+        allow create: if isSignedIn() && isProjectOwner() && 
+                         isValidId(meetingId) &&
+                         isValidMeeting(incoming()) &&
+                         incoming().createdAt == request.time;
+        
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        
+        allow update: if isSignedIn() && isProjectOwner() && 
+                         isValidMeeting(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt &&
+                         (!('updatedAt' in incoming()) || incoming().updatedAt == request.time);
+        
+        allow delete: if isSignedIn() && isProjectOwner();
+      }
+
+      // Procurement Log
+      match /procurement/{itemId} {
+        function isValidProcurement(data) {
+          return data.projectId == projectId &&
+                 data.tag is string && data.tag.size() > 0 &&
+                 data.status in ['Not Ordered', 'Ordered', 'In Transit', 'On Site'] &&
+                 data.ownerId == request.auth.uid &&
+                 (!('deletedAt' in data) || data.deletedAt == null || data.deletedAt is string);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidProcurement(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidProcurement(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Submittal Register
+      match /submittals/{submittalId} {
+        function isValidSubmittal(data) {
+          return data.projectId == projectId &&
+                 data.specSection is string && data.specSection.size() <= 50 &&
+                 data.description is string && data.description.size() <= 500 &&
+                 data.subcontractor is string && data.subcontractor.size() <= 200 &&
+                 data.status in ['Draft', 'Pending', 'Review', 'Approved', 'Rejected'] &&
+                 data.scheduledInstallDate is string &&
+                 data.leadTimeWeeks is number &&
+                 data.ownerId == request.auth.uid &&
+                 (!('trafficLightStatus' in data) || data.trafficLightStatus in ['green', 'yellow', 'red']) &&
+                 (!('followUpPriority' in data) || data.followUpPriority in ['High', 'Medium', 'Low']) &&
+                 (!('procurementFloat' in data) || data.procurementFloat is number);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidSubmittal(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidSubmittal(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Drawing Logs
+      match /drawings/{drawingId} {
+        function isValidDrawing(data) {
+          return data.projectId == projectId &&
+                 data.sheetNumber is string && data.sheetNumber.size() <= 50 &&
+                 data.sheetTitle is string && data.sheetTitle.size() <= 200 &&
+                 data.revisionNumber is string &&
+                 data.status in ['Current', 'Superseded', 'Void'] &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidDrawing(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidDrawing(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Potential Change Orders (PCOs)
+      match /pcos/{pcoId} {
+        function isValidPCO(data) {
+          return data.projectId == projectId &&
+                 data.pcoNumber is string && data.pcoNumber.size() <= 50 &&
+                 data.title is string && data.title.size() <= 200 &&
+                 data.status in ['Draft', 'Sent', 'Approved', 'Rejected', 'Void'] &&
+                 data.ownerId == request.auth.uid &&
+                 (!('category' in data) || data.category in ['Design Gap', 'Field Condition', 'Owner Request', 'Other']) &&
+                 (!('professionalDescription' in data) || data.professionalDescription is string) &&
+                 (!('suggestedReferences' in data) || data.suggestedReferences is string) &&
+                 (!('estimatedCost' in data) || data.estimatedCost is number);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidPCO(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidPCO(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Subcontractor Compliance
+      match /compliance/{complianceId} {
+        function isValidCompliance(data) {
+          return data.projectId == projectId &&
+                 data.subcontractorName is string && data.subcontractorName.size() <= 200 &&
+                 data.contactEmail is string &&
+                 data.status in ['Compliant', 'Non-Compliant', 'Expiring Soon'] &&
+                 data.ownerId == request.auth.uid &&
+                 data.contractSigned is bool &&
+                 data.safetyPlanApproved is bool;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidCompliance(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidCompliance(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Quantity Trackers
+      match /trackers/{trackerId} {
+        function isValidTracker(data) {
+          return data.projectId == projectId &&
+                 data.itemName is string && data.itemName.size() <= 200 &&
+                 data.unit is string &&
+                 data.totalEstimatedQuantity is number &&
+                 data.installedQuantity is number &&
+                 data.status in ['On Track', 'At Risk', 'Completed'] &&
+                 data.ownerId == request.auth.uid &&
+                 (!('burnRateInfo' in data) || data.burnRateInfo is string) &&
+                 (!('estimatedCompletionDays' in data) || data.estimatedCompletionDays is number);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidTracker(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidTracker(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+
+        // Daily Logs
+        match /logs/{logId} {
+          function isValidLog(data) {
+            return data.projectId == projectId &&
+                   data.trackerId == trackerId &&
+                   data.quantity is number &&
+                   data.ownerId == request.auth.uid;
+          }
+
+          allow create: if isVerified() && isProjectOwner() && 
+                           isValidLog(incoming()) &&
+                           incoming().createdAt == request.time;
+          allow list: if isSignedIn() && isProjectOwner();
+          allow update: if isVerified() && isProjectOwner() && isValidLog(incoming()) &&
+                           incoming().ownerId == existing().ownerId &&
+                           incoming().createdAt == existing().createdAt;
+          allow delete: if isVerified() && isProjectOwner();
+        }
+      }
+
+      // Pre-Installation Meetings
+      match /precon/{preconId} {
+        function isValidPrecon(data) {
+          return data.projectId == projectId &&
+                 data.title is string && data.title.size() <= 200 &&
+                 data.ownerId == request.auth.uid &&
+                 data.status in ['Scheduled', 'Completed'] &&
+                 (!('specSection' in data) || data.specSection is string) &&
+                 (!('submittalRef' in data) || data.submittalRef is string) &&
+                 (!('subcontractor' in data) || data.subcontractor is string) &&
+                 (!('meetingDate' in data) || data.meetingDate is string) &&
+                 (!('agenda' in data) || data.agenda is map);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidPrecon(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidPrecon(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Construction Daily Reports
+      match /daily-reports/{reportId} {
+        function isValidReport(data) {
+          return data.projectId == projectId &&
+                 data.reportDate is string &&
+                 data.rawNotes is string && data.rawNotes.size() <= 2000 &&
+                 data.ownerId == request.auth.uid &&
+                 data.narrativeWorkAccomplished is string &&
+                 data.narrativeDelaysIssues is string;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidReport(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidReport(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Punch List Items
+      match /punch-list/{punchId} {
+        function isValidPunch(data) {
+          return data.projectId == projectId &&
+                 data.description is string && data.description.size() <= 1000 &&
+                 data.status in ['Open', 'Pending', 'Closed'] &&
+                 data.ownerId == request.auth.uid &&
+                 (!('location' in data) || data.location is string) &&
+                 (!('csiDivision' in data) || data.csiDivision is string) &&
+                 (!('responsibleSub' in data) || data.responsibleSub is string) &&
+                 (!('imageUrl' in data) || data.imageUrl is string) &&
+                 (!('coordinates' in data) || data.coordinates is map);
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidPunch(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidPunch(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Permits
+      match /permits/{permitId} {
+        function isValidPermit(data) {
+          return data.projectId == projectId &&
+                 data.permitNumber is string &&
+                 data.agency is string &&
+                 data.status in ['Active', 'Pending', 'Closed', 'Failed Inspection'] &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidPermit(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidPermit(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // SWPPP
+      match /swppp/{swpppId} {
+        function isValidSWPPP(data) {
+          return data.projectId == projectId &&
+                 data.bmpName is string &&
+                 data.status in ['Compliant', 'Failure', 'In Repair'] &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidSWPPP(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidSWPPP(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // Equipment O&M
+      match /equipment-om/{omId} {
+        function isValidOM(data) {
+          return data.projectId == projectId &&
+                 data.tagId is string &&
+                 data.equipmentName is string &&
+                 data.status in ['Draft', 'Approved', 'Exported'] &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidOM(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidOM(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+
+      // As-Built Validation
+      match /as-builts/{valId} {
+        function isValidAsBuilt(data) {
+          return data.projectId == projectId &&
+                 data.sheetNumber is string &&
+                 data.status in ['Pending', 'Validated', 'Revisions Required'] &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidAsBuilt(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidAsBuilt(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+      // Warranties
+      match /warranties/{warrantyId} {
+        function isValidWarranty(data) {
+          return data.projectId == projectId &&
+                 data.subcontractor is string &&
+                 data.startDate is string &&
+                 data.endDate is string &&
+                 data.ownerId == request.auth.uid;
+        }
+
+        allow create: if isVerified() && isProjectOwner() && 
+                         isValidWarranty(incoming()) &&
+                         incoming().createdAt == request.time;
+        allow list: if isSignedIn() && isProjectOwner();
+        allow get: if isSignedIn() && isProjectOwner();
+        allow update: if isVerified() && isProjectOwner() && isValidWarranty(incoming()) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt;
+        allow delete: if isVerified() && isProjectOwner();
+      }
+    }
+
+    // User Profiles
+    match /users/{userId}/private/profile {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

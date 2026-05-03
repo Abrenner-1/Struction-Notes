@@ -1,0 +1,6 @@
+{
+  "name": "Struction Notes",
+  "description": "A professional tool for construction managers to track project progress, safety logs, deliveries, and procurement with audio recording functionality.",
+  "requestFramePermissions": ["microphone", "display-capture"],
+  "majorCapabilities": []
+}

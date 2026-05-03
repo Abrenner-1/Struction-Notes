@@ -1,0 +1,511 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A construction project.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the project" },
+        "description": { "type": "string", "description": "Brief description of the project" },
+        "location": { "type": "string", "description": "Site location" },
+        "substantialCompletionDate": { "type": "string", "format": "date", "description": "YYYY-MM-DD completion target" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string", "description": "UID of the user who owns this project" }
+      },
+      "required": ["name", "ownerId", "createdAt"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "A field note for a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string", "enum": ["Progress", "Safety", "Delivery", "Meeting", "Issue", "General"] },
+        "date": { "type": "string", "format": "date" },
+        "photoUrls": { "type": "array", "items": { "type": "string" } },
+        "authorId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "title", "type", "date", "authorId", "createdAt"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task or reminder for a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "reminderAt": { "type": "string", "format": "date-time" },
+        "completed": { "type": "boolean" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "title", "ownerId", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Private user information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "ProjectPage": {
+      "title": "Project Page",
+      "description": "A freeform note page for a project (OneNote style).",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "title", "content", "ownerId", "createdAt"]
+    },
+    "ScheduleItem": {
+      "title": "Schedule Item",
+      "description": "An imported schedule item from an Excel file.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "division": { "type": "string" },
+        "subcontractor": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isConverted": { "type": "boolean" }
+      },
+      "required": ["projectId", "title", "ownerId", "createdAt"]
+    },
+    "Meeting": {
+      "title": "Meeting",
+      "description": "A meeting recorded for a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "attendees": { "type": "string", "description": "Comma separated list of attendees" },
+        "minutes": { "type": "string", "description": "Detailed meeting minutes (HTML content)" },
+        "followUpRequired": { "type": "boolean" },
+        "parentMeetingId": { "type": "string", "description": "ID of the parent meeting if this is a follow-up" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "title", "date", "ownerId", "createdAt"]
+    },
+    "ProcurementItem": {
+      "title": "Procurement Item",
+      "description": "An item in the procurement log tracking material delivery.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "tag": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Not Ordered", "Ordered", "In Transit", "On Site"] },
+        "vendor": { "type": "string" },
+        "leadTime": { "type": "string" },
+        "expectedDate": { "type": "string", "format": "date" },
+        "submittalRef": { "type": "string" },
+        "division": { "type": "string" },
+        "comments": { 
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "author": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "deletedAt": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "tag", "status", "ownerId", "createdAt"]
+    },
+    "Submittal": {
+      "title": "Submittal",
+      "description": "A construction submittal item tracking approval and procurement float.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "specSection": { "type": "string" },
+        "description": { "type": "string" },
+        "subcontractor": { "type": "string" },
+        "status": { "type": "string", "enum": ["Draft", "Pending", "Review", "Approved", "Rejected"] },
+        "scheduledInstallDate": { "type": "string", "format": "date" },
+        "leadTimeWeeks": { "type": "number" },
+        "procurementFloat": { "type": "number" },
+        "trafficLightStatus": { "type": "string", "enum": ["green", "yellow", "red"] },
+        "followUpPriority": { "type": "string", "enum": ["High", "Medium", "Low"] },
+        "vendorContact": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "specSection", "description", "subcontractor", "status", "scheduledInstallDate", "leadTimeWeeks", "ownerId", "createdAt"]
+    },
+    "Drawing": {
+      "title": "Drawing",
+      "description": "A construction drawing sheet and its revision history.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "sheetNumber": { "type": "string" },
+        "sheetTitle": { "type": "string" },
+        "revisionNumber": { "type": "string" },
+        "revisionDate": { "type": "string", "format": "date" },
+        "revisionDescription": { "type": "string" },
+        "discipline": { "type": "string" },
+        "subcontractorsAffected": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Current", "Superseded", "Void"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "sheetNumber", "sheetTitle", "revisionNumber", "revisionDate", "status", "ownerId", "createdAt"]
+    },
+    "PCO": {
+      "title": "Potential Change Order",
+      "description": "A draft change order tracking potential costs and contractual impacts.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "pcoNumber": { "type": "string" },
+        "title": { "type": "string" },
+        "rawDescription": { "type": "string" },
+        "professionalDescription": { "type": "string" },
+        "category": { "type": "string", "enum": ["Design Gap", "Field Condition", "Owner Request", "Other"] },
+        "status": { "type": "string", "enum": ["Draft", "Sent", "Approved", "Rejected", "Void"] },
+        "suggestedReferences": { "type": "string" },
+        "estimatedCost": { "type": "number" },
+        "subcontractor": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "pcoNumber", "title", "status", "ownerId", "createdAt"]
+    },
+    "SubcontractorCompliance": {
+      "title": "Subcontractor Compliance",
+      "description": "Tracking of subcontractor insurance, contracts, and safety approvals.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "subcontractorName": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "coiExpirationDate": { "type": "string", "format": "date" },
+        "contractSigned": { "type": "boolean" },
+        "safetyPlanApproved": { "type": "boolean" },
+        "mobilizationDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Compliant", "Non-Compliant", "Expiring Soon"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "subcontractorName", "contactEmail", "coiExpirationDate", "contractSigned", "safetyPlanApproved", "mobilizationDate", "status", "ownerId", "createdAt"]
+    },
+    "QuantityTracker": {
+      "title": "Quantity Tracker",
+      "description": "Tracks project quantity estimates against actual daily installations.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "itemName": { "type": "string" },
+        "unit": { "type": "string" },
+        "totalEstimatedQuantity": { "type": "number" },
+        "installedQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["On Track", "At Risk", "Completed"] },
+        "burnRateInfo": { "type": "string" },
+        "estimatedCompletionDays": { "type": "number" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "itemName", "unit", "totalEstimatedQuantity", "installedQuantity", "status", "ownerId", "createdAt"]
+    },
+    "DailyLog": {
+      "title": "Daily Installation Log",
+      "description": "Daily recording of installed quantities.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "trackerId": { "type": "string" },
+        "installDate": { "type": "string", "format": "date" },
+        "quantity": { "type": "number" },
+        "notes": { "type": "string" },
+        "rawInput": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "trackerId", "installDate", "quantity", "ownerId", "createdAt"]
+    },
+    "PreInstallationMeeting": {
+      "title": "Pre-Installation Meeting",
+      "description": "A meeting agenda and checklist for pre-con alignment.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "specSection": { "type": "string" },
+        "submittalRef": { "type": "string" },
+        "subcontractor": { "type": "string" },
+        "meetingDate": { "type": "string", "format": "date" },
+        "agenda": {
+          "type": "object",
+          "properties": {
+            "criticalConstraints": { "type": "array", "items": { "type": "string" } },
+            "mockupRequirements": { "type": "array", "items": { "type": "string" } },
+            "checklist": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "status": { "type": "string", "enum": ["Scheduled", "Completed"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "title", "status", "ownerId", "createdAt"]
+    },
+    "ConstructionDailyReport": {
+      "title": "Construction Daily Report",
+      "description": "Professional daily narrative transformed from field notes.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "reportDate": { "type": "string", "format": "date" },
+        "rawNotes": { "type": "string" },
+        "narrativeWorkAccomplished": { "type": "string" },
+        "narrativeDelaysIssues": { "type": "string" },
+        "suggestedActionItems": { "type": "array", "items": { "type": "string" } },
+        "weatherCondition": { "type": "string" },
+        "manpowerCount": { "type": "number" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "reportDate", "rawNotes", "narrativeWorkAccomplished", "narrativeDelaysIssues", "ownerId", "createdAt"]
+    },
+    "PunchItem": {
+      "title": "Punch List Item",
+      "description": "A deficiency identified on site requiring correction.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "description": { "type": "string" },
+        "location": { "type": "string" },
+        "csiDivision": { "type": "string" },
+        "responsibleSub": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Pending", "Closed"] },
+        "imageUrl": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" }
+          }
+        },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "description", "status", "ownerId", "createdAt"]
+    },
+    "Permit": {
+      "title": "Permit",
+      "description": "Authority Having Jurisdiction (AHJ) permit and inspection tracker.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "permitNumber": { "type": "string" },
+        "agency": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Pending", "Closed", "Failed Inspection"] },
+        "lastInspectionDate": { "type": "string", "format": "date" },
+        "lastInspectionResult": { "type": "string" },
+        "correctionRequirements": { "type": "string" },
+        "reinspectionDraftEmail": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "permitNumber", "agency", "status", "ownerId", "createdAt"]
+    },
+    "EquipmentOM": {
+      "title": "Equipment O&M Data",
+      "description": "Maintenance schedules and spare parts extracted from equipment manuals.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "tagId": { "type": "string" },
+        "equipmentName": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "modelNumber": { "type": "string" },
+        "maintenanceSchedule": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task": { "type": "string" },
+              "frequency": { "type": "string" }
+            }
+          }
+        },
+        "spareParts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "partNumber": { "type": "string" }
+            }
+          }
+        },
+        "status": { "type": "string", "enum": ["Draft", "Approved", "Exported"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "tagId", "equipmentName", "ownerId", "createdAt"]
+    },
+    "AsBuiltValidation": {
+      "title": "As-Built Validation",
+      "description": "Comparison of field redlines against original design drawings.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "sheetNumber": { "type": "string" },
+        "sheetName": { "type": "string" },
+        "designImageUrl": { "type": "string" },
+        "redlineImageUrl": { "type": "string" },
+        "deviations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": { "type": "string" },
+              "description": { "type": "string" },
+              "location": { "type": "string" }
+            }
+          }
+        },
+        "cadChecklist": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Pending", "Validated", "Revisions Required"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "sheetNumber", "status", "ownerId", "createdAt"]
+    },
+    "Warranty": {
+      "title": "Warranty",
+      "description": "Subcontractor and manufacturer warranties for project closeout.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "subcontractor": { "type": "string" },
+        "scopeOfWork": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "isExtended": { "type": "boolean" },
+        "exclusions": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Active", "Expired", "Expiring Soon"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "subcontractor", "startDate", "endDate", "ownerId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "projects": {
+      "schema": "Project",
+      "description": "Top-level collection for construction projects."
+    },
+    "projects/{projectId}/notes": {
+      "schema": "Note",
+      "description": "Subcollection for notes within a project."
+    },
+    "projects/{projectId}/tasks": {
+      "schema": "Task",
+      "description": "Subcollection for tasks within a project."
+    },
+    "projects/{projectId}/pages": {
+      "schema": "ProjectPage",
+      "description": "Subcollection for freeform notebook pages."
+    },
+    "projects/{projectId}/scheduleItems": {
+      "schema": "ScheduleItem",
+      "description": "Subcollection for raw imported schedule items."
+    },
+    "projects/{projectId}/meetings": {
+      "schema": "Meeting",
+      "description": "Subcollection for project meetings and minutes."
+    },
+    "projects/{projectId}/procurement": {
+      "schema": "ProcurementItem",
+      "description": "Subcollection for material procurement tracking."
+    },
+    "projects/{projectId}/submittals": {
+      "schema": "Submittal",
+      "description": "Subcollection for tracking submittals and procurement lead times."
+    },
+    "projects/{projectId}/drawings": {
+      "schema": "Drawing",
+      "description": "Subcollection for construction drawings and version history."
+    },
+    "projects/{projectId}/pcos": {
+      "schema": "PCO",
+      "description": "Subcollection for potential change orders."
+    },
+    "projects/{projectId}/compliance": {
+      "schema": "SubcontractorCompliance",
+      "description": "Subcollection for subcontractor compliance tracking."
+    },
+    "projects/{projectId}/trackers": {
+      "schema": "QuantityTracker",
+      "description": "Subcollection for yield and production tracking."
+    },
+    "projects/{projectId}/trackers/{trackerId}/logs": {
+      "schema": "DailyLog",
+      "description": "Subcollection for daily installation logs."
+    },
+    "projects/{projectId}/precon": {
+      "schema": "PreInstallationMeeting",
+      "description": "Subcollection for pre-installation meeting agendas and checklists."
+    },
+    "projects/{projectId}/daily-reports": {
+      "schema": "ConstructionDailyReport",
+      "description": "Subcollection for AI-transformed professional daily reports."
+    },
+    "projects/{projectId}/punch-list": {
+      "schema": "PunchItem",
+      "description": "Subcollection for site deficiencies and punch list tracking."
+    },
+    "projects/{projectId}/permits": {
+      "schema": "Permit",
+      "description": "Subcollection for monitoring AHJ permits and inspections."
+    },
+    "projects/{projectId}/swppp": {
+      "schema": "SWPPPItem",
+      "description": "Subcollection for weekly SWPPP compliance monitoring."
+    },
+    "projects/{projectId}/equipment-om": {
+      "schema": "EquipmentOM",
+      "description": "Subcollection for equipment O&M data extraction."
+    },
+    "projects/{projectId}/as-builts": {
+      "schema": "AsBuiltValidation",
+      "description": "Subcollection for As-Built drawing validations and redline detection."
+    },
+    "projects/{projectId}/warranties": {
+      "schema": "Warranty",
+      "description": "Subcollection for project warranties and closeout documentation."
+    },
+    "users/{userId}/private/profile": {
+      "schema": "UserProfile",
+      "description": "Private user profile data."
+    }
+  }
+}
