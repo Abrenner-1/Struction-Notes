@@ -51,9 +51,9 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
               <div className="mt-2 relative">
                 <div 
                   className={cn(
-                    "text-[11px] text-slate-500 leading-relaxed prose prose-slate prose-xs max-w-none break-words overflow-hidden transition-all duration-300",
+                    "text-[11px] text-slate-500 dark:text-slate-300 leading-relaxed prose prose-slate dark:prose-invert prose-xs max-w-none break-words overflow-hidden transition-all duration-300",
                     "whitespace-pre-wrap [overflow-wrap:anywhere]",
-                    task.completed && "text-slate-300 line-through",
+                    task.completed && "text-slate-300 dark:text-slate-500 line-through",
                     (!isExpanded && task.description.length > 150) && "max-h-24"
                   )}
                   style={(!isExpanded && task.description.length > 150) ? { 
@@ -117,7 +117,7 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
           {task.dueDate && (
             <span className={cn(
               "text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider",
-              isOverdue ? "bg-red-50 text-red-600 border border-red-100" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+              isOverdue ? "bg-red-50 text-red-600 border border-red-100" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
             )}>
               {format(task.dueDate.toDate(), 'MMM dd')}
             </span>

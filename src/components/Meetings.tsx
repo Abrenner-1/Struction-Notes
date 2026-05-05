@@ -390,14 +390,28 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden"
+        className={cn(
+          "w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden transition-colors duration-300",
+          mode === 'view' ? "bg-[#0f172a] border border-slate-800" : "bg-white dark:bg-slate-900"
+        )}
       >
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50">
+        <div className={cn(
+          "p-6 border-b flex items-center justify-between transition-colors",
+          mode === 'view' 
+            ? "bg-slate-900/50 text-white border-slate-800" 
+            : "bg-slate-50/50 border-slate-100 dark:border-slate-800"
+        )}>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 italic">
+            <p className={cn(
+              "text-[10px] font-bold uppercase tracking-widest mb-1 italic transition-colors",
+              mode === 'view' ? "text-slate-400" : "text-slate-400"
+            )}>
               {mode === 'view' ? 'Record Details' : meeting?.id ? 'Edit Minutes' : 'New Entry'}
             </p>
-            <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-200">
+            <h2 className={cn(
+              "text-xl font-bold tracking-tight transition-colors",
+              mode === 'view' ? "text-white" : "text-slate-800 dark:text-slate-200"
+            )}>
               {formData.title || 'Meeting Minutes'}
             </h2>
           </div>
@@ -405,14 +419,20 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
             {mode === 'view' && (
               <button 
                 onClick={() => setMode('edit')}
-                className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-all"
+                className="flex items-center gap-2 px-4 py-1.5 bg-slate-800 text-white border border-slate-700 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-700 transition-all shadow-sm"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 Edit
               </button>
             )}
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-full transition-colors">
-              <X className="w-5 h-5 text-slate-400" />
+            <button 
+              onClick={onClose} 
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                mode === 'view' ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 dark:bg-slate-800 text-slate-400"
+              )}
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -424,17 +444,17 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Basic Information</label>
                 {mode === 'view' ? (
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      <Calendar className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <Calendar className="w-4 h-4 text-blue-400" />
                       {format(new Date(formData.date), 'EEEE, MMMM dd, yyyy')}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                      <Clock className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Clock className="w-4 h-4 text-slate-500" />
                       {format(new Date(formData.date), 'p')}
                     </div>
                     {formData.location && (
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <MapPin className="w-4 h-4 text-slate-400" />
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <MapPin className="w-4 h-4 text-slate-500" />
                         {formData.location}
                       </div>
                     )}
@@ -472,7 +492,7 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Attendees</label>
                 {mode === 'view' ? (
-                  <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-700 text-sm italic text-slate-600 dark:text-slate-400 break-words whitespace-pre-wrap">
+                  <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800 text-sm italic text-slate-300 break-words whitespace-pre-wrap">
                     {formData.attendees || 'No attendees documented.'}
                   </div>
                 ) : (
@@ -490,11 +510,11 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
           <div className="space-y-4">
             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Meeting Minutes & Action Items</label>
             {mode === 'view' ? (
-              <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 dark:border-slate-800 min-h-[300px] overflow-hidden">
+              <div className="p-6 bg-slate-950/30 rounded-2xl border border-slate-800 min-h-[300px] overflow-hidden">
                 {formData.minutes ? (
                   <div className="ql-snow">
                     <div 
-                      className="ql-editor !px-4 !py-2"
+                      className="ql-editor !px-4 !py-2 !text-slate-200"
                       dangerouslySetInnerHTML={{ __html: formData.minutes }} 
                     />
                   </div>
