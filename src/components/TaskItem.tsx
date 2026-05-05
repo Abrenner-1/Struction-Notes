@@ -9,7 +9,7 @@ import { cn } from '../lib/utils';
 import DOMPurify from 'dompurify';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, isHighlighted, dragHandleProps }: any) {
+export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, isHighlighted, dragHandleProps, isDragging }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const taskRef = useRef<HTMLDivElement>(null);
@@ -29,16 +29,15 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
   return (
     <div 
       ref={taskRef}
+      {...dragHandleProps}
       className={cn(
-        "p-4 rounded-xl shadow-sm flex items-start gap-3 group transition-all border-l-4 h-fit",
+        "p-4 rounded-xl shadow-sm flex items-start gap-3 group border-l-4 h-fit",
+        !isDragging && "transition-all",
         task.completed ? "border-l-emerald-500 opacity-60 bg-white dark:bg-slate-900" : 
         isOverdue ? "border-l-red-500 bg-white dark:bg-slate-900" : "border-l-blue-500 bg-white dark:bg-slate-900",
         isHighlighted ? "ring-2 ring-orange-500 border-orange-500 scale-[1.02] z-10" : "border-slate-200 dark:border-slate-700"
       )}
     >
-      <div {...dragHandleProps} className="mt-1.5 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 transition-colors">
-        <GripVertical className="w-4 h-4" />
-      </div>
       <button onClick={() => toggleTask(task)} className="mt-1 transition-transform hover:scale-110 shrink-0">
         {task.completed ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Circle className="w-5 h-5 text-slate-300" />}
       </button>

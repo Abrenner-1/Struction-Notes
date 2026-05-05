@@ -189,16 +189,22 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
     // Persist to Firebase
     try {
       const collectionPath = type === 'note' ? 'notes' : 'tasks';
+      const batch = writeBatch(db);
+      
       // Only update items that actually need their position changed
-      const batchPromises = sourceItems.map((item, index) => {
+      let hasChanges = false;
+      sourceItems.forEach((item, index) => {
         if (item.position !== index) {
-          return updateDoc(doc(db, 'projects', project.id, collectionPath, item.id), {
+          batch.update(doc(db, 'projects', project.id, collectionPath, item.id), {
             position: index
           });
+          hasChanges = true;
         }
-        return Promise.resolve();
       });
-      await Promise.all(batchPromises);
+      
+      if (hasChanges) {
+        await batch.commit();
+      }
     } catch (err) {
       console.error(`Error saving ${type} order:`, err);
     }
@@ -562,7 +568,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             
             {filteredNotes.length > 0 ? (
               <DragDropContext onDragEnd={(result) => onDragEnd(result, 'note')}>
-                <Droppable droppableId="notes-list">
+                <Droppable droppableId="notes-list" direction="horizontal">
                   {(provided) => (
                     <div 
                       {...provided.droppableProps}
@@ -572,12 +578,13 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                       {filteredNotes.map((note, index) => (
                         // @ts-ignore
                         <Draggable key={note.id} draggableId={note.id} index={index}>
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps}>
                               <NoteCard 
                                 note={note} 
                                 dragHandleProps={provided.dragHandleProps}
                                 isHighlighted={highlightedNoteId === note.id}
+                                isDragging={snapshot.isDragging}
                                 onDelete={() => deleteNote(note.id)} 
                                 onEdit={() => setEditingNote(note)}
                               />
@@ -611,7 +618,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             </div>
             {tasks.length > 0 ? (
               <DragDropContext onDragEnd={(result) => onDragEnd(result, 'task')}>
-                <Droppable droppableId="tasks-list">
+                <Droppable droppableId="tasks-list" direction="horizontal">
                   {(provided) => (
                     <div 
                       {...provided.droppableProps}
@@ -621,12 +628,19 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                       {tasks.map((task, index) => (
                         // @ts-ignore
                         <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps}>
+                          {(provided, snapshot) => (
+                            <div 
+                              ref={provided.innerRef} 
+                              {...provided.draggableProps}
+                              className={cn(
+                                snapshot.isDragging ? "shadow-2xl z-50 ring-2 ring-orange-500/20 rounded-xl" : ""
+                              )}
+                            >
                               <TaskItem 
                                 task={task} 
                                 dragHandleProps={provided.dragHandleProps}
                                 isHighlighted={highlightedTaskId === task.id}
+                                isDragging={snapshot.isDragging}
                                 toggleTask={toggleTask} 
                                 setEditingTask={setEditingTask} 
                                 onDelete={() => deleteTask(task.id)}

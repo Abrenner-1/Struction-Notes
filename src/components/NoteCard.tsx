@@ -9,7 +9,7 @@ import { cn } from '../lib/utils';
 import DOMPurify from 'dompurify';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProps }: any) {
+export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProps, isDragging }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -55,18 +55,17 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
   return (
     <motion.div 
       ref={cardRef}
+      {...dragHandleProps}
       layout
       className={cn(
-        "border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group relative flex flex-col",
+        "border rounded-xl overflow-hidden shadow-sm hover:shadow-md group relative flex flex-col",
+        !isDragging && "transition-all",
         bgClass,
         isHighlighted ? "border-orange-500 ring-2 ring-orange-500/20 scale-[1.02] z-10" : "border-slate-200 dark:border-slate-700"
       )}
     >
       <div className="p-5 flex flex-col h-full relative">
-        <div {...dragHandleProps} className="absolute left-1 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400 opacity-0 group-hover:opacity-100 transition-all z-20">
-          <GripVertical className="w-5 h-5" />
-        </div>
-        <div className="flex justify-between items-start mb-4 pl-4">
+        <div className="flex justify-between items-start mb-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn("text-[10px] font-bold uppercase px-2 py-0.5 rounded shadow-sm", typeColors[note.type])}>
               {note.type}
