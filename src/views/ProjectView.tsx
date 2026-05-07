@@ -568,12 +568,12 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             
             {filteredNotes.length > 0 ? (
               <DragDropContext onDragEnd={(result) => onDragEnd(result, 'note')}>
-                <Droppable droppableId="notes-list" direction="horizontal">
+                <Droppable droppableId="notes-list" direction="vertical">
                   {(provided) => (
                     <div 
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                      className="flex flex-col gap-6"
                     >
                       {filteredNotes.map((note, index) => (
                         // @ts-ignore
@@ -618,12 +618,12 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             </div>
             {tasks.length > 0 ? (
               <DragDropContext onDragEnd={(result) => onDragEnd(result, 'task')}>
-                <Droppable droppableId="tasks-list" direction="horizontal">
+                <Droppable droppableId="tasks-list" direction="vertical">
                   {(provided) => (
                     <div 
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      className="flex flex-col gap-4 max-w-3xl"
                     >
                       {tasks.map((task, index) => (
                         // @ts-ignore
@@ -633,7 +633,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                               ref={provided.innerRef} 
                               {...provided.draggableProps}
                               className={cn(
-                                snapshot.isDragging ? "shadow-2xl z-50 ring-2 ring-orange-500/20 rounded-xl" : ""
+                                snapshot.isDragging ? "shadow-2xl z-50 ring-2 ring-orange-500/20 rounded-xl bg-white dark:bg-slate-900" : ""
                               )}
                             >
                               <TaskItem 

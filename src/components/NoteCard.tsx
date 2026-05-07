@@ -55,16 +55,23 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
   return (
     <motion.div 
       ref={cardRef}
-      {...dragHandleProps}
       layout
       className={cn(
-        "border rounded-xl overflow-hidden shadow-sm hover:shadow-md group relative flex flex-col",
+        "border rounded-xl overflow-hidden shadow-sm hover:shadow-md group relative flex !flex-row items-stretch",
         !isDragging && "transition-all",
         bgClass,
         isHighlighted ? "border-orange-500 ring-2 ring-orange-500/20 scale-[1.02] z-10" : "border-slate-200 dark:border-slate-700"
       )}
     >
-      <div className="p-5 flex flex-col h-full relative">
+      {/* Drag Handle */}
+      <div 
+        {...dragHandleProps}
+        className="px-2 flex items-center justify-center bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors cursor-grab active:cursor-grabbing border-r border-slate-900/10 dark:border-white/10"
+      >
+        <GripVertical className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" />
+      </div>
+
+      <div className="p-5 flex-1 flex flex-col h-full relative">
         <div className="flex justify-between items-start mb-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn("text-[10px] font-bold uppercase px-2 py-0.5 rounded shadow-sm", typeColors[note.type])}>
