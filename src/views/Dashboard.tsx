@@ -105,13 +105,9 @@ export function Dashboard({ projects, onSelectProject, onCreateRequest, onEditRe
                            </div>
                          ))
                        ) : (
-                         <React.Fragment key={`tm-fallback-${project.id}`}>
-                           <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center border-2 border-white text-xs font-bold">
-                             {(currentUser?.displayName || 'Alex Johnson').split(' ').map((n: string) => n[0]).join('')}
-                           </div>
-                           <div className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center border-2 border-white text-xs font-bold">KL</div>
-                           <div className="w-8 h-8 rounded-full bg-orange-800 text-white flex items-center justify-center border-2 border-white text-xs font-bold">RP</div>
-                         </React.Fragment>
+                         <div key={`tm-fallback-${project.id}`} className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center border-2 border-white text-xs font-bold">
+                           {(currentUser?.displayName || 'Alex Johnson').split(' ').map((n: string) => n[0]).join('')}
+                         </div>
                        )}
                    </div>
                </div>

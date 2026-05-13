@@ -33,6 +33,7 @@ export default function App() {
   const [showEditProjectModal, setShowEditProjectModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingTeamMembers, setEditingTeamMembers] = useState<{ initials: string, color: string }[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -268,6 +269,7 @@ export default function App() {
       location: formData.get('location') as string,
       substantialCompletionDate: formData.get('substantialCompletionDate') as string,
       projectManager: formData.get('projectManager') as string,
+      teamMembers: editingTeamMembers,
       lastEditedBy: user.displayName || 'Alex Johnson',
       updatedAt: serverTimestamp()
     };
@@ -278,6 +280,12 @@ export default function App() {
       } else {
         await updateDoc(doc(db, 'projects', editingProject.id), updates);
       }
+      
+      // Update selected project if it's the one we're editing
+      if (selectedProject?.id === editingProject.id) {
+        setSelectedProject(prev => prev ? { ...prev, ...updates } as any : null);
+      }
+
       setShowEditProjectModal(false);
       setEditingProject(null);
     } catch (err) {
@@ -508,6 +516,7 @@ export default function App() {
                 onCreateRequest={() => setShowNewProjectModal(true)}
                 onEditRequest={(p) => {
                   setEditingProject(p);
+                  setEditingTeamMembers(p.teamMembers || []);
                   setShowEditProjectModal(true);
                 }}
                 onDeleteRequest={handleDeleteProject}
@@ -519,6 +528,7 @@ export default function App() {
                   user={user}
                   onEditRequest={(p) => {
                     setEditingProject(p);
+                    setEditingTeamMembers(p.teamMembers || []);
                     setShowEditProjectModal(true);
                   }}
                   onDeleteRequest={handleDeleteProject}
@@ -620,6 +630,42 @@ export default function App() {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Project Manager</label>
                   <input name="projectManager" defaultValue={editingProject.projectManager} placeholder="e.g. Alex Johnson" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 rounded-lg px-4 py-3 outline-none transition-all text-sm" />
                 </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Team Members</label>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {editingTeamMembers.map((member, idx) => (
+                        <div key={`edit-tm-${idx}`} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full text-white text-xs font-bold", member.color)}>
+                          <span>{member.initials}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => setEditingTeamMembers(prev => prev.filter((_, i) => i !== idx))}
+                            className="hover:text-red-200 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {editingTeamMembers.length === 0 && <p className="text-xs text-slate-400 italic">No team members assigned.</p>}
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const name = prompt("Enter initials for new team member:");
+                        if (name) {
+                          const colors = ['bg-slate-700', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-600', 'bg-purple-600', 'bg-rose-600'];
+                          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                          setEditingTeamMembers(prev => [...prev, { initials: name.substring(0, 3).toUpperCase(), color: randomColor }]);
+                        }
+                      }}
+                      className="text-[10px] font-bold text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> Add Member
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-3 mt-2">
                   <button 
                     type="submit" 

@@ -20,8 +20,8 @@ import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../lib/firebase';
 import { cn } from '../lib/utils';
 
-import { Note, Task, ProcurementItem, ScheduleItem } from '../types';
-import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay } from 'date-fns';
+import { Note, Task, ProcurementItem, ScheduleItem, Meeting } from '../types';
+import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay, formatDistanceToNow } from 'date-fns';
 
 interface ProjectDashboardProps {
   project: {
@@ -34,6 +34,7 @@ interface ProjectDashboardProps {
   };
   notes: Note[];
   tasks: Task[];
+  meetings: Meeting[];
   scheduleItems: ScheduleItem[];
   user: any;
   onNavigate: (tab: 'dashboard' | 'notes' | 'tasks' | 'canvas' | 'procurement' | 'registers' | 'meetings', id?: string) => void;
@@ -43,6 +44,7 @@ export default function ProjectDashboard({
   project, 
   notes, 
   tasks, 
+  meetings,
   scheduleItems,
   user,
   onNavigate 
@@ -112,6 +114,31 @@ export default function ProjectDashboard({
       const dateB = b.expectedDate ? new Date(b.expectedDate).getTime() : Infinity;
       return dateA - dateB;
     });
+
+  const recentActivities = useMemo(() => {
+    const activities = [
+      ...notes.map(note => ({
+        id: note.id,
+        title: note.title,
+        type: note.type,
+        category: 'Site Observation',
+        date: note.createdAt?.toDate() || new Date(note.date),
+        icon: <FileText className="w-5 h-5" />,
+        onClick: () => onNavigate('notes', note.id)
+      })),
+      ...meetings.map(meeting => ({
+        id: meeting.id,
+        title: meeting.title,
+        type: 'Minutes',
+        category: 'Meeting Record',
+        date: meeting.createdAt?.toDate() || meeting.date.toDate(),
+        icon: <ClipboardList className="w-5 h-5" />,
+        onClick: () => onNavigate('meetings', meeting.id)
+      }))
+    ];
+
+    return activities.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 3);
+  }, [notes, meetings, onNavigate]);
 
   return (
     <div className="space-y-6">
@@ -301,29 +328,30 @@ export default function ProjectDashboard({
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm uppercase tracking-widest">Recent Activity</h3>
-            <button className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors">View All</button>
           </div>
-          <div className="space-y-4">
-            {notes.slice(0, 3).map((note) => (
+          <div className="space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+            {recentActivities.map((activity) => (
               <div 
-                key={`dash-note-${note.id}`} 
-                onClick={() => onNavigate('notes', note.id)}
+                key={`dash-activity-${activity.id}`} 
+                onClick={activity.onClick}
                 className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 dark:bg-slate-950 transition-colors group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-orange-100 group-hover:text-orange-500 transition-colors">
-                  <FileText className="w-5 h-5" />
+                  {activity.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-orange-600 transition-colors">{note.title}</p>
-                    <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Recent</span>
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-orange-600 transition-colors">{activity.title}</p>
+                    <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                      {formatDistanceToNow(activity.date, { addSuffix: true })}
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{note.type} • Site Observation</p>
+                  <p className="text-xs text-slate-500 mt-1">{activity.type} • {activity.category}</p>
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-slate-200 group-hover:text-orange-300 transition-colors shrink-0 self-center" />
               </div>
             ))}
-            {notes.length === 0 && (
+            {recentActivities.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">No recent activity found.</p>
             )}
           </div>

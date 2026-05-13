@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronDown, Plus, FileText, CheckCircle2, ChevronRight, Edit3, Trash } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { db, auth, handleFirestoreError } from '../lib/firebase';
-import { collection, query, onSnapshot, writeBatch, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, where, Timestamp } from 'firebase/firestore';
-import { Project, Note, Task, ScheduleItem, NoteType } from '../types';
+import { collection, query, onSnapshot, writeBatch, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, where, Timestamp, orderBy } from 'firebase/firestore';
+import { Project, Note, Task, ScheduleItem, NoteType, Meeting } from '../types';
 import { ExtractedTask } from '../services/importService';
 import ProcurementLog from '../components/ProcurementLog';
 import ProjectRegisters from '../components/ProjectRegisters';
@@ -33,6 +33,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
   const [activeTab, setActiveTab] = useState<'dashboard' | 'notes' | 'tasks' | 'canvas' | 'procurement' | 'registers' | 'meetings'>('dashboard');
   const [notes, setNotes] = useState<Note[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [showAddNote, setShowAddNote] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -146,10 +147,20 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
       handleFirestoreError(error, 'list', `projects/${project.id}/scheduleItems`);
     });
 
+    const unsubMeetings = onSnapshot(query(
+      collection(db, 'projects', project.id, 'meetings'),
+      orderBy('date', 'desc')
+    ), (snap) => {
+      setMeetings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Meeting)));
+    }, (error) => {
+      handleFirestoreError(error, 'list', `projects/${project.id}/meetings`);
+    });
+
     return () => {
       unsubNotes();
       unsubTasks();
       unsubSchedule();
+      unsubMeetings();
     };
   }, [project.id, user]);
 
@@ -514,6 +525,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             project={project} 
             notes={notes} 
             tasks={tasks} 
+            meetings={meetings}
             scheduleItems={scheduleItems}
             user={user}
             onNavigate={(tab, id) => {
@@ -526,6 +538,8 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                 setHighlightedTaskId(id);
               } else if (tab === 'procurement' && id) {
                 setHighlightedProcurementId(id);
+              } else if (tab === 'meetings' && id) {
+                // Handle meeting highlight if needed
               }
             }}
           />
