@@ -427,7 +427,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar">
+      <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto overflow-y-hidden custom-scrollbar">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={cn(
