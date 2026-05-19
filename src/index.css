@@ -79,11 +79,6 @@
     min-height: 100px;
     font-size: 0.875rem;
     line-height: 1.6;
-    white-space: pre-wrap !important;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
-    text-align: left !important;
-    hyphens: none !important;
   }
   .ql-editor p {
     margin-bottom: 0.5rem;
@@ -126,5 +121,13 @@
   }
   .quill-editor-full .ql-toolbar {
     flex-shrink: 0 !important;
+  }
+  
+  /* Read-only view of Quill in Meetings */
+  .meetings-view-only .ql-container {
+    border: none !important;
+  }
+  .meetings-view-only .ql-editor {
+    padding: 0 !important;
   }
 }

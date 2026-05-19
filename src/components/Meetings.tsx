@@ -512,12 +512,13 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
             {mode === 'view' ? (
               <div className="p-6 bg-slate-950/30 rounded-2xl border border-slate-800 min-h-[300px] overflow-hidden">
                 {formData.minutes ? (
-                  <div className="ql-snow">
-                    <div 
-                      className="ql-editor !px-4 !py-2 !text-slate-200"
-                      dangerouslySetInnerHTML={{ __html: formData.minutes }} 
-                    />
-                  </div>
+                  <ReactQuill 
+                    theme="snow"
+                    readOnly={true}
+                    modules={{ toolbar: false }}
+                    value={formData.minutes}
+                    className="meetings-view-only text-slate-200"
+                  />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400 italic">
                     <FileText className="w-12 h-12 mb-4 opacity-20" />
@@ -565,7 +566,7 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
           <div className="p-6 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
             <button 
               type="button"
-              onClick={onClose}
+              onClick={() => meeting?.id ? setMode('view') : onClose()}
               className="px-6 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-widest hover:bg-slate-200 rounded-lg transition-all"
             >
               Cancel
