@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AuthView } from './views/AuthView';
 import { Dashboard } from './views/Dashboard';
@@ -15,9 +15,8 @@ import { useGlobalReminders } from './hooks/useGlobalReminders';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useProjects, type ProjectFormValues } from './hooks/useProjects';
 import { useTheme } from './hooks/useTheme';
+import { getDashboardPath, getProjectPath, parseAppRoute, type AppRoute, type ProjectTab } from './lib/routes';
 import type { Project, TeamMember } from './types';
-
-type AppView = 'dashboard' | 'project';
 
 export default function App() {
   const isOnline = useOnlineStatus();
@@ -40,7 +39,7 @@ export default function App() {
   const { notifications, removeNotification } = useGlobalReminders(user, isGuest);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [view, setView] = useState<AppView>('dashboard');
+  const [route, setRoute] = useState<AppRoute>(() => parseAppRoute());
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -50,31 +49,62 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const routedProjectId = route.view === 'project' ? route.projectId : null;
+
+  const navigateTo = useCallback((path: string, options?: { replace?: boolean }) => {
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (currentPath !== path) {
+      const method = options?.replace ? 'replaceState' : 'pushState';
+      window.history[method](null, '', path);
+    }
+
+    setRoute(parseAppRoute(path));
+  }, []);
 
   useEffect(() => {
-    if (!selectedProject) return;
+    const handlePopState = () => {
+      setRoute(parseAppRoute());
+    };
 
-    const latestProject = projects.find((project) => project.id === selectedProject.id);
-    if (latestProject) {
-      setSelectedProject(latestProject);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!routedProjectId) {
+      if (selectedProject) {
+        setSelectedProject(null);
+      }
       return;
     }
 
-    setSelectedProject(null);
-    if (view === 'project') {
-      setView('dashboard');
+    const routedProject = projects.find((project) => project.id === routedProjectId);
+    if (routedProject) {
+      setSelectedProject(routedProject);
+      return;
     }
-  }, [projects, selectedProject?.id, view]);
+
+    if (selectedProject?.id !== routedProjectId) {
+      setSelectedProject(null);
+      return;
+    }
+  }, [projects, routedProjectId, selectedProject?.id]);
 
   const goToDashboard = () => {
-    setView('dashboard');
+    navigateTo(getDashboardPath());
     setIsSidebarOpen(false);
   };
 
   const selectProject = (project: Project) => {
     setSelectedProject(project);
-    setView('project');
+    navigateTo(getProjectPath(project.id, 'dashboard'));
     setIsSidebarOpen(false);
+  };
+
+  const goToProjectTab = (tab: ProjectTab) => {
+    if (route.view !== 'project') return;
+
+    navigateTo(getProjectPath(route.projectId, tab));
   };
 
   const beginProjectEdit = (project: Project) => {
@@ -99,7 +129,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await endSession();
-    setView('dashboard');
+    navigateTo(getDashboardPath(), { replace: true });
     setSelectedProject(null);
     setIsSidebarOpen(false);
   };
@@ -127,7 +157,7 @@ export default function App() {
 
     if (selectedProject?.id === projectToDelete.id) {
       setSelectedProject(null);
-      setView('dashboard');
+      navigateTo(getDashboardPath());
     }
 
     closeProjectEdit();
@@ -162,7 +192,7 @@ export default function App() {
         isOnline={isOnline}
         projects={projects}
         selectedProject={selectedProject}
-        view={view}
+        view={route.view}
         onClose={() => setIsSidebarOpen(false)}
         onGoDashboard={goToDashboard}
         onLogout={handleLogout}
@@ -183,7 +213,7 @@ export default function App() {
 
         <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-950">
           <div className="p-8">
-            {view === 'dashboard' ? (
+            {route.view === 'dashboard' ? (
               <Dashboard
                 projects={projects}
                 searchQuery={searchQuery}
@@ -198,12 +228,18 @@ export default function App() {
                 <ProjectView
                   project={selectedProject}
                   user={user}
+                  activeTab={route.tab}
+                  onTabChange={goToProjectTab}
                   onEditRequest={beginProjectEdit}
                   onDeleteRequest={requestDeleteProject}
                   onBack={goToDashboard}
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="max-w-6xl mx-auto rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-400 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                Loading project...
+              </div>
+            )}
           </div>
         </main>
       </div>

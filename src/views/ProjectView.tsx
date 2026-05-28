@@ -30,6 +30,7 @@ import { NoteModal } from '../components/modals/NoteModal';
 import { TaskModal } from '../components/modals/TaskModal';
 import { ConfirmClearModal } from '../components/modals/ConfirmClearModal';
 import { cn } from '../lib/utils';
+import type { ProjectTab } from '../lib/routes';
 import { NoteCard } from '../components/NoteCard';
 import { SortableTaskCard } from '../components/SortableTaskCard';
 import { ProjectCanvas } from './ProjectCanvas';
@@ -43,8 +44,6 @@ const PROJECT_TABS = [
   { id: 'registers', label: 'Project Registers', icon: ClipboardList },
   { id: 'meetings', label: 'Meetings', icon: Users },
 ] as const;
-
-type ProjectTab = typeof PROJECT_TABS[number]['id'];
 
 function getTimestampMillis(value: unknown) {
   if (value && typeof (value as { toMillis?: unknown }).toMillis === 'function') {
@@ -129,14 +128,15 @@ function moveTaskAfterToggle(tasks: Task[], taskToToggle: Task) {
     : assignTaskPositions([updatedTask, ...openTasks, ...completedTasks]);
 }
 
-export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onBack }: { 
+export function ProjectView({ project, user, activeTab, onTabChange, onEditRequest, onDeleteRequest, onBack }: { 
   project: Project, 
   user: any,
+  activeTab: ProjectTab,
+  onTabChange: (tab: ProjectTab) => void,
   onEditRequest: (p: Project) => void,
   onDeleteRequest: (id: string) => Promise<void> | void,
   onBack: () => void 
 }) {
-  const [activeTab, setActiveTab] = useState<ProjectTab>('dashboard');
   const [notes, setNotes] = useState<Note[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -591,7 +591,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             key={id}
             type="button"
             title={label}
-            onClick={() => setActiveTab(id)}
+            onClick={() => onTabChange(id)}
             className={cn(
               "relative flex min-w-0 items-center justify-center gap-1 px-1 py-3 text-center text-[9px] font-bold uppercase leading-tight tracking-[0.08em] transition-all sm:gap-1.5 md:px-2 md:text-[10px] lg:px-3 xl:text-xs",
               activeTab === id ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
@@ -633,7 +633,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             scheduleItems={scheduleItems}
             user={user}
             onNavigate={(tab, id) => {
-              setActiveTab(tab as any);
+              onTabChange(tab);
               if (tab === 'notes' && id) {
                 setHighlightedNoteId(id);
                 setSearchNotesQuery('');

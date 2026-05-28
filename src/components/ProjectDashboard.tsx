@@ -19,6 +19,7 @@ import { motion } from 'motion/react';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../lib/firebase';
 import { cn } from '../lib/utils';
+import type { ProjectTab } from '../lib/routes';
 
 import { Note, Task, ProcurementItem, ScheduleItem, Meeting } from '../types';
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay, formatDistanceToNow } from 'date-fns';
@@ -37,7 +38,7 @@ interface ProjectDashboardProps {
   meetings: Meeting[];
   scheduleItems: ScheduleItem[];
   user: any;
-  onNavigate: (tab: 'dashboard' | 'notes' | 'tasks' | 'canvas' | 'procurement' | 'registers' | 'meetings', id?: string) => void;
+  onNavigate: (tab: ProjectTab, id?: string) => void;
 }
 
 export default function ProjectDashboard({ 

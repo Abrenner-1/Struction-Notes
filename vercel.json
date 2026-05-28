@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/projects",
+      "destination": "/"
+    },
+    {
+      "source": "/projects/:path*",
+      "destination": "/"
+    }
+  ]
+}
