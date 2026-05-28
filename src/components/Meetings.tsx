@@ -37,6 +37,7 @@ import { cn } from '../lib/utils';
 import { Meeting } from '../types';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { sanitizeRichText } from '../lib/sanitizeHtml';
 
 const QUILL_MODULES = {
   toolbar: [
@@ -348,7 +349,7 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
     date: meeting?.date ? format(meeting.date.toDate(), "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     location: meeting?.location || '',
     attendees: meeting?.attendees || '',
-    minutes: meeting?.minutes || '',
+    minutes: sanitizeRichText(meeting?.minutes || ''),
     followUpRequired: meeting?.followUpRequired || false,
     parentMeetingId: meeting?.parentMeetingId || null
   });
@@ -362,6 +363,7 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
     try {
       const data = {
         ...formData,
+        minutes: sanitizeRichText(formData.minutes),
         date: Timestamp.fromDate(new Date(formData.date)),
         projectId,
         ownerId: user.uid,
@@ -516,7 +518,7 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
                     theme="snow"
                     readOnly={true}
                     modules={{ toolbar: false }}
-                    value={formData.minutes}
+                    value={sanitizeRichText(formData.minutes)}
                     className="meetings-view-only text-slate-200"
                   />
                 ) : (
@@ -589,4 +591,3 @@ function MeetingModal({ projectId, user, meeting, initialMode, onClose }: {
     </div>
   );
 }
-

@@ -103,7 +103,7 @@ export default function ScheduleImportModal({ onClose, onImport }: ScheduleImpor
                     type="file" 
                     ref={fileInputRef} 
                     className="hidden" 
-                    accept=".xlsx,.xls,.csv" 
+                    accept=".xlsx,.csv"
                     onChange={handleFileChange}
                   />
                 </div>

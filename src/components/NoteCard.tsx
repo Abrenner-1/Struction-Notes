@@ -4,7 +4,7 @@ import { ChevronDown, Edit3, GripVertical, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import type { NoteType } from '../types';
 import { cn } from '../lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeRichText } from '../lib/sanitizeHtml';
 
 export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProps, isDragging }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -12,9 +12,7 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
   const cardRef = useRef<HTMLDivElement>(null);
   const noteTitle = String(note.title || '').replace(/\u00a0/g, ' ');
   const noteContent = String(note.content || '');
-  const sanitizedContent = noteContent
-    ? DOMPurify.sanitize(noteContent).replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ')
-    : '';
+  const sanitizedContent = sanitizeRichText(noteContent);
 
   useEffect(() => {
     if (isHighlighted && cardRef.current) {

@@ -8,6 +8,7 @@ import type { ProjectPage, SpreadsheetGridData } from '../types';
 import { cn } from '../lib/utils';
 import ReactQuill from 'react-quill-new';
 import { createDefaultSpreadsheetData, SpreadsheetGrid } from '../components/SpreadsheetGrid';
+import { sanitizeRichText } from '../lib/sanitizeHtml';
 
 const QUILL_MODULES = {
   toolbar: [
@@ -58,7 +59,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
 
   const selectPage = (page: ProjectPage) => {
     setSelectedPage(page);
-    setContent(page.content || '');
+    setContent(sanitizeRichText(page.content || ''));
     setTitle(page.title || '');
     setGridData(getPageGridData(page));
     setEditorMode(page.editorMode || 'document');
@@ -115,7 +116,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     if (!selectedPage) return;
     setIsSaving(true);
     const nextTitle = newTitle ?? title;
-    const nextContent = newContent ?? content;
+    const nextContent = sanitizeRichText(newContent ?? content);
     const nextGridData = newGridData ?? gridData;
     const nextEditorMode = newEditorMode ?? editorMode;
 

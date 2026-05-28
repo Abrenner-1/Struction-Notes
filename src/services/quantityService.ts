@@ -1,6 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+import { generateContent, Type } from './geminiClient';
 
 export async function analyzeDailyLog(rawLog: string, trackerData: any) {
   const model = "gemini-3-flash-preview";
@@ -32,7 +30,7 @@ export async function analyzeDailyLog(rawLog: string, trackerData: any) {
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContent({
       model,
       contents: prompt,
       config: {

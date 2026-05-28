@@ -1,6 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+import { generateContent, Type } from './geminiClient';
 
 export async function processInspectionResult(permitNumber: string, result: string) {
   const model = "gemini-1.5-flash";
@@ -24,7 +22,7 @@ export async function processInspectionResult(permitNumber: string, result: stri
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContent({
       model,
       contents: prompt,
       config: {

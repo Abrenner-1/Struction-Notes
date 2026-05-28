@@ -3,7 +3,7 @@ import { Bell, CheckCircle2, ChevronDown, Circle, GripVertical, Settings, Trash2
 import { format, isBefore } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { cn } from '../lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeRichText } from '../lib/sanitizeHtml';
 
 export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, isHighlighted, dragHandleProps, isDragging }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -12,9 +12,7 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
   const isOverdue = task.dueDate && isBefore(task.dueDate.toDate(), new Date()) && !task.completed;
   const taskTitle = String(task.title || '').replace(/\u00a0/g, ' ');
   const taskDescription = String(task.description || '');
-  const sanitizedDescription = taskDescription
-    ? DOMPurify.sanitize(taskDescription).replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ')
-    : '';
+  const sanitizedDescription = sanitizeRichText(taskDescription);
 
   const handleDelete = async () => {
     await onDelete();

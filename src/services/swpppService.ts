@@ -1,6 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+import { generateContent, Type } from './geminiClient';
 
 export async function analyzeSWPPPPhoto(base64Image: string, bmpName: string) {
   const model = "gemini-1.5-flash";
@@ -23,7 +21,7 @@ export async function analyzeSWPPPPhoto(base64Image: string, bmpName: string) {
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContent({
       model,
       contents: [
         {
