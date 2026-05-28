@@ -98,9 +98,28 @@ export interface ProjectPage {
   projectId: string;
   title: string;
   content: string;
+  gridData?: SpreadsheetGridData;
+  editorMode?: 'document' | 'grid';
   ownerId: string;
   updatedAt: Timestamp;
   createdAt: Timestamp;
+}
+
+export type SpreadsheetCellAlign = 'left' | 'center' | 'right';
+
+export interface SpreadsheetCell {
+  value: string;
+  bold?: boolean;
+  italic?: boolean;
+  align?: SpreadsheetCellAlign;
+  textColor?: string;
+  backgroundColor?: string;
+}
+
+export interface SpreadsheetGridData {
+  rowCount: number;
+  columnCount: number;
+  cells: Record<string, SpreadsheetCell>;
 }
 
 export interface UserProfile {

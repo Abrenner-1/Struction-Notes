@@ -65,6 +65,30 @@
         "projectId": { "type": "string" },
         "title": { "type": "string" },
         "content": { "type": "string" },
+        "editorMode": { "type": "string", "enum": ["document", "grid"] },
+        "gridData": {
+          "type": "object",
+          "description": "Spreadsheet-style grid data saved with a project note page.",
+          "properties": {
+            "rowCount": { "type": "number" },
+            "columnCount": { "type": "number" },
+            "cells": {
+              "type": "object",
+              "description": "Cell data keyed by spreadsheet coordinate, for example A1.",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "bold": { "type": "boolean" },
+                  "italic": { "type": "boolean" },
+                  "align": { "type": "string", "enum": ["left", "center", "right"] },
+                  "textColor": { "type": "string" },
+                  "backgroundColor": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
         "ownerId": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" }

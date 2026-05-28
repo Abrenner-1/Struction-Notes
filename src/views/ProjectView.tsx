@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronDown, Plus, FileText, CheckCircle2, ChevronRight, Edit3, Trash, LayoutDashboard, StickyNote, Package, ClipboardList, Users } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable';
 import { db, auth, handleFirestoreError } from '../lib/firebase';
-import { collection, query, onSnapshot, writeBatch, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, where, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, writeBatch, doc, deleteDoc, addDoc, serverTimestamp, where, Timestamp, orderBy } from 'firebase/firestore';
 import { Project, Note, Task, ScheduleItem, NoteType, Meeting } from '../types';
 import { ExtractedTask } from '../services/importService';
 import ProcurementLog from '../components/ProcurementLog';
@@ -16,7 +31,7 @@ import { TaskModal } from '../components/modals/TaskModal';
 import { ConfirmClearModal } from '../components/modals/ConfirmClearModal';
 import { cn } from '../lib/utils';
 import { NoteCard } from '../components/NoteCard';
-import { TaskItem } from '../components/TaskItem';
+import { SortableTaskCard } from '../components/SortableTaskCard';
 import { ProjectCanvas } from './ProjectCanvas';
 
 function getTimestampMillis(value: unknown) {
@@ -58,6 +73,50 @@ function getNextTaskPosition(tasks: Task[]) {
   return Math.min(...openTaskPositions) - 1;
 }
 
+function reorderTasksForDrop(tasks: Task[], activeId: string, overId: string) {
+  const activeTask = tasks.find((task) => task.id === activeId);
+  const overTask = tasks.find((task) => task.id === overId);
+
+  if (!activeTask || !overTask) return tasks;
+
+  if (activeTask.completed === overTask.completed) {
+    const sameStatusTasks = tasks.filter((task) => task.completed === activeTask.completed);
+    const otherStatusTasks = tasks.filter((task) => task.completed !== activeTask.completed);
+    const oldIndex = sameStatusTasks.findIndex((task) => task.id === activeId);
+    const newIndex = sameStatusTasks.findIndex((task) => task.id === overId);
+    const reorderedGroup = arrayMove(sameStatusTasks, oldIndex, newIndex);
+
+    return activeTask.completed
+      ? [...otherStatusTasks, ...reorderedGroup]
+      : [...reorderedGroup, ...otherStatusTasks];
+  }
+
+  const openTasks = tasks.filter((task) => !task.completed && task.id !== activeId);
+  const completedTasks = tasks.filter((task) => task.completed && task.id !== activeId);
+
+  if (activeTask.completed) {
+    completedTasks.unshift(activeTask);
+  } else {
+    openTasks.push(activeTask);
+  }
+
+  return [...openTasks, ...completedTasks];
+}
+
+function assignTaskPositions(tasksToPosition: Task[]) {
+  return tasksToPosition.map((task, index) => ({ ...task, position: index }));
+}
+
+function moveTaskAfterToggle(tasks: Task[], taskToToggle: Task) {
+  const updatedTask = { ...taskToToggle, completed: !taskToToggle.completed };
+  const openTasks = tasks.filter((task) => !task.completed && task.id !== taskToToggle.id);
+  const completedTasks = tasks.filter((task) => task.completed && task.id !== taskToToggle.id);
+
+  return updatedTask.completed
+    ? assignTaskPositions([...openTasks, ...completedTasks, updatedTask])
+    : assignTaskPositions([updatedTask, ...openTasks, ...completedTasks]);
+}
+
 export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onBack }: { 
   project: Project, 
   user: any,
@@ -83,6 +142,16 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
   const [showAddScheduleItem, setShowAddScheduleItem] = useState(false);
   const [editingScheduleItem, setEditingScheduleItem] = useState<ScheduleItem | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const taskSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   // Clear highlights after a short delay
   useEffect(() => {
@@ -192,50 +261,41 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
     };
   }, [project.id, user]);
 
-  const onDragEnd = async (result: DropResult, type: 'note' | 'task') => {
+  const onNoteDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     const sourceIndex = result.source.index;
     const destIndex = result.destination.index;
     if (sourceIndex === destIndex) return;
 
-    const sourceItems = type === 'note' ? [...filteredNotes] : [...tasks];
+    const sourceItems = [...filteredNotes];
     const [movedItem] = sourceItems.splice(sourceIndex, 1);
     sourceItems.splice(destIndex, 0, movedItem);
 
     // Update locally for immediate UI feedback
-    if (type === 'note') {
-      const notePositions = new Map(sourceItems.map((n, i) => [n.id, i]));
-      const updatedNotes = notes.map(n => {
-        if (notePositions.has(n.id)) {
-          return { ...n, position: notePositions.get(n.id) };
-        }
-        return n;
-      }).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      
-      setNotes(updatedNotes);
-      if (user.uid === 'guest-123') {
-        localStorage.setItem(`guest_notes_${project.id}`, JSON.stringify(updatedNotes));
+    const notePositions = new Map(sourceItems.map((n, i) => [n.id, i]));
+    const updatedNotes = notes.map(n => {
+      if (notePositions.has(n.id)) {
+        return { ...n, position: notePositions.get(n.id) };
       }
-    } else {
-      const updatedTasks = sortTasks(sourceItems as Task[]);
-      setTasks(updatedTasks);
-      if (user.uid === 'guest-123') {
-        localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(updatedTasks));
-      }
+      return n;
+    }).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    
+    setNotes(updatedNotes);
+    if (user.uid === 'guest-123') {
+      localStorage.setItem(`guest_notes_${project.id}`, JSON.stringify(updatedNotes));
     }
 
     if (user.uid === 'guest-123') return;
 
     // Persist to Firebase
     try {
-      const collectionPath = type === 'note' ? 'notes' : 'tasks';
       const batch = writeBatch(db);
       
       // Only update items that actually need their position changed
       let hasChanges = false;
       sourceItems.forEach((item, index) => {
         if (item.position !== index) {
-          batch.update(doc(db, 'projects', project.id, collectionPath, item.id), {
+          batch.update(doc(db, 'projects', project.id, 'notes', item.id), {
             position: index
           });
           hasChanges = true;
@@ -246,12 +306,12 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
         await batch.commit();
       }
     } catch (err) {
-      console.error(`Error saving ${type} order:`, err);
+      console.error('Error saving note order:', err);
     }
   };
 
   const toggleTask = async (task: Task) => {
-    const updatedTasks = sortTasks(tasks.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+    const updatedTasks = moveTaskAfterToggle(tasks, task);
 
     if (user.uid === 'guest-123') {
       setTasks(updatedTasks);
@@ -261,13 +321,52 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
 
     setTasks(updatedTasks);
     try {
-      await updateDoc(doc(db, 'projects', project.id, 'tasks', task.id), {
-        completed: !task.completed
+      const batch = writeBatch(db);
+
+      updatedTasks.forEach((updatedTask, index) => {
+        batch.update(doc(db, 'projects', project.id, 'tasks', updatedTask.id), {
+          position: index,
+          ...(updatedTask.id === task.id ? { completed: updatedTask.completed } : {}),
+        });
       });
+
+      await batch.commit();
     } catch (err) {
       setTasks(tasks);
       handleFirestoreError(err, 'update', `projects/${project.id}/tasks/${task.id}`);
     }
+  };
+
+  const persistTaskOrder = async (orderedTasks: Task[]) => {
+    if (user.uid === 'guest-123') {
+      localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(orderedTasks));
+      return;
+    }
+
+    try {
+      const batch = writeBatch(db);
+
+      orderedTasks.forEach((task, index) => {
+        batch.update(doc(db, 'projects', project.id, 'tasks', task.id), {
+          position: index,
+        });
+      });
+
+      await batch.commit();
+    } catch (err) {
+      console.error('Error saving task order:', err);
+    }
+  };
+
+  const onTaskDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+
+    const orderedTasks = assignTaskPositions(
+      reorderTasksForDrop(tasks, String(active.id), String(over.id)),
+    );
+
+    setTasks(orderedTasks);
+    await persistTaskOrder(orderedTasks);
   };
 
   const handleBatchImport = async (extractedTasks: ExtractedTask[]) => {
@@ -621,7 +720,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             </div>
             
             {filteredNotes.length > 0 ? (
-              <DragDropContext onDragEnd={(result) => onDragEnd(result, 'note')}>
+              <DragDropContext onDragEnd={onNoteDragEnd}>
                 <Droppable droppableId="notes-list" direction="vertical">
                   {(provided) => (
                     <div 
@@ -671,45 +770,31 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
               </button>
             </div>
             {tasks.length > 0 ? (
-              <DragDropContext onDragEnd={(result) => onDragEnd(result, 'task')}>
-                <Droppable droppableId="tasks-list" direction="vertical">
-                  {(provided) => (
-                    <div 
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-                    >
-                      {tasks.map((task, index) => (
-                        // @ts-ignore
-                        <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div 
-                              ref={provided.innerRef} 
-                              {...provided.draggableProps}
-                              className={cn(
-                                "h-full",
-                                snapshot.isDragging ? "shadow-2xl z-50 ring-2 ring-orange-500/20 rounded-xl bg-white dark:bg-slate-900" : ""
-                              )}
-                            >
-                              <TaskItem 
-                                task={task} 
-                                dragHandleProps={provided.dragHandleProps}
-                                isHighlighted={highlightedTaskId === task.id}
-                                isDragging={snapshot.isDragging}
-                                toggleTask={toggleTask} 
-                                setEditingTask={setEditingTask} 
-                                onDelete={() => deleteTask(task.id)}
-                                project={project}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+              <DndContext
+                sensors={taskSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={onTaskDragEnd}
+              >
+                <SortableContext
+                  items={tasks.map((task) => task.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {tasks.map((task) => (
+                      <React.Fragment key={task.id}>
+                        <SortableTaskCard
+                          task={task}
+                          project={project}
+                          isHighlighted={highlightedTaskId === task.id}
+                          toggleTask={toggleTask}
+                          setEditingTask={setEditingTask}
+                          onDelete={() => deleteTask(task.id)}
+                        />
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             ) : (
               <div className="py-16 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-900">
                 <CheckCircle2 className="w-10 h-10 text-slate-200 mx-auto mb-3" />

@@ -36,7 +36,7 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
       {/* Drag Handle */}
       <div 
         {...dragHandleProps}
-        className="px-2 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-grab active:cursor-grabbing border-r border-slate-100 dark:border-slate-800"
+        className="px-2 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-grab active:cursor-grabbing border-r border-slate-100 dark:border-slate-800 touch-none select-none"
       >
         <GripVertical className="w-4 h-4 text-slate-400" />
       </div>

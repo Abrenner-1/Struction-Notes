@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Clock, Edit3, FileText, PanelLeftClose, PanelLeftOpen, Plus, Save, Search, Trash } from 'lucide-react';
+import { BookOpen, Clock, Edit3, FileText, PanelLeftClose, PanelLeftOpen, Plus, Save, Search, Table2, Trash } from 'lucide-react';
 import { format } from 'date-fns';
 import { db, auth, handleFirestoreError } from '../lib/firebase';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc } from 'firebase/firestore';
-import type { ProjectPage } from '../types';
+import type { ProjectPage, SpreadsheetGridData } from '../types';
 import { cn } from '../lib/utils';
 import ReactQuill from 'react-quill-new';
+import { createDefaultSpreadsheetData, SpreadsheetGrid } from '../components/SpreadsheetGrid';
 
 const QUILL_MODULES = {
   toolbar: [
@@ -19,11 +20,24 @@ const QUILL_MODULES = {
   ]
 };
 
+type ProjectNotesEditorMode = 'document' | 'grid';
+
+function getPageGridData(page: ProjectPage | null) {
+  return page?.gridData || createDefaultSpreadsheetData();
+}
+
+function getGridSearchText(gridData?: SpreadsheetGridData) {
+  if (!gridData?.cells) return '';
+  return Object.values(gridData.cells).map((cell) => cell.value).join(' ');
+}
+
 export function ProjectCanvas({ projectId, user }: { projectId: string, user: any }) {
   const [pages, setPages] = useState<ProjectPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ProjectPage | null>(null);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+  const [gridData, setGridData] = useState<SpreadsheetGridData>(() => createDefaultSpreadsheetData());
+  const [editorMode, setEditorMode] = useState<ProjectNotesEditorMode>('document');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,6 +56,14 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const selectPage = (page: ProjectPage) => {
+    setSelectedPage(page);
+    setContent(page.content || '');
+    setTitle(page.title || '');
+    setGridData(getPageGridData(page));
+    setEditorMode(page.editorMode || 'document');
+  };
+
   useEffect(() => {
     if (!user) return;
     const q = query(
@@ -53,9 +75,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
       fetchedPages.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
       setPages(fetchedPages);
       if (fetchedPages.length > 0 && !selectedPage) {
-        setSelectedPage(fetchedPages[0]);
-        setContent(fetchedPages[0].content);
-        setTitle(fetchedPages[0].title);
+        selectPage(fetchedPages[0]);
       }
     }, (error) => {
       handleFirestoreError(error, 'list', `projects/${projectId}/pages`);
@@ -64,10 +84,10 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     return () => unsub();
   }, [projectId, user]);
 
-  const filteredPages = pages.filter(page => 
-    page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    page.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPages = pages.filter(page => {
+    const searchText = `${page.title} ${page.content} ${getGridSearchText(page.gridData)}`.toLowerCase();
+    return searchText.includes(searchQuery.toLowerCase());
+  });
 
   const handleCreatePage = async () => {
     try {
@@ -75,6 +95,8 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
         projectId,
         title: 'Untitled Page',
         content: '',
+        gridData: createDefaultSpreadsheetData(),
+        editorMode: 'document',
         ownerId: auth.currentUser?.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -84,16 +106,34 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     }
   };
 
-  const savePage = async (newTitle?: string, newContent?: string) => {
+  const savePage = async (
+    newTitle?: string,
+    newContent?: string,
+    newGridData?: SpreadsheetGridData,
+    newEditorMode?: ProjectNotesEditorMode,
+  ) => {
     if (!selectedPage) return;
     setIsSaving(true);
+    const nextTitle = newTitle ?? title;
+    const nextContent = newContent ?? content;
+    const nextGridData = newGridData ?? gridData;
+    const nextEditorMode = newEditorMode ?? editorMode;
+
     try {
       await updateDoc(doc(db, 'projects', projectId, 'pages', selectedPage.id), {
-        title: newTitle ?? title,
-        content: newContent ?? content,
+        title: nextTitle,
+        content: nextContent,
+        gridData: nextGridData,
+        editorMode: nextEditorMode,
         updatedAt: serverTimestamp()
       });
-      setSelectedPage({ ...selectedPage, title: newTitle ?? title, content: newContent ?? content });
+      setSelectedPage({
+        ...selectedPage,
+        title: nextTitle,
+        content: nextContent,
+        gridData: nextGridData,
+        editorMode: nextEditorMode,
+      });
       setLastSaved(new Date());
     } catch (err) {
       handleFirestoreError(err, 'update', `projects/${projectId}/pages/${selectedPage.id}`);
@@ -107,7 +147,12 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     if (!selectedPage) return;
     
     // Check if anything actually changed
-    const hasChanges = (title !== selectedPage.title) || (content !== selectedPage.content);
+    const hasChanges =
+      title !== selectedPage.title ||
+      content !== selectedPage.content ||
+      editorMode !== (selectedPage.editorMode || 'document') ||
+      JSON.stringify(gridData) !== JSON.stringify(getPageGridData(selectedPage));
+
     if (!hasChanges) return;
 
     const timeoutId = setTimeout(() => {
@@ -115,7 +160,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [content, title, selectedPage?.id]);
+  }, [content, editorMode, gridData, title, selectedPage?.id]);
 
   const deletePage = async (id: string) => {
     try {
@@ -124,6 +169,8 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
         setSelectedPage(null);
         setContent('');
         setTitle('');
+        setGridData(createDefaultSpreadsheetData());
+        setEditorMode('document');
       }
     } catch (err) {
       handleFirestoreError(err, 'delete', `projects/${projectId}/pages/${id}`);
@@ -175,9 +222,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
             <div 
               key={`page-item-${page.id}`}
               onClick={() => {
-                setSelectedPage(page);
-                setContent(page.content);
-                setTitle(page.title);
+                selectPage(page);
               }}
               className={cn(
                 "group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all whitespace-nowrap",
@@ -245,27 +290,57 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => savePage()}
-                disabled={isSaving}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition-all uppercase tracking-widest",
-                  isSaving ? "bg-slate-100 dark:bg-slate-800 text-slate-400" : "bg-orange-500 text-white hover:bg-orange-600 shadow-md active:scale-95"
-                )}
-              >
-                <Save className="w-3 h-3" />
-                {isSaving ? 'Saving...' : 'Save Now'}
-              </button>
+              <div className="flex items-center gap-3">
+                <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                  <button
+                    type="button"
+                    onClick={() => setEditorMode('document')}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                      editorMode === 'document' ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "text-slate-400 hover:text-orange-500"
+                    )}
+                  >
+                    <FileText className="w-3 h-3" />
+                    Document
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditorMode('grid')}
+                    className={cn(
+                      "flex items-center gap-2 border-l border-slate-200 px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-all dark:border-slate-700",
+                      editorMode === 'grid' ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "text-slate-400 hover:text-orange-500"
+                    )}
+                  >
+                    <Table2 className="w-3 h-3" />
+                    Grid
+                  </button>
+                </div>
+                <button 
+                  onClick={() => savePage()}
+                  disabled={isSaving}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition-all uppercase tracking-widest",
+                    isSaving ? "bg-slate-100 dark:bg-slate-800 text-slate-400" : "bg-orange-500 text-white hover:bg-orange-600 shadow-md active:scale-95"
+                  )}
+                >
+                  <Save className="w-3 h-3" />
+                  {isSaving ? 'Saving...' : 'Save Now'}
+                </button>
+              </div>
             </div>
             <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
-              <ReactQuill 
-                theme="snow" 
-                value={content} 
-                onChange={setContent}
-                placeholder="Start drafting your operational notes, site summaries, or long-form documentation..."
-                className="flex-1 quill-editor-full"
-                modules={modules}
-              />
+              {editorMode === 'document' ? (
+                <ReactQuill 
+                  theme="snow" 
+                  value={content} 
+                  onChange={setContent}
+                  placeholder="Start drafting your operational notes, site summaries, or long-form documentation..."
+                  className="flex-1 quill-editor-full"
+                  modules={modules}
+                />
+              ) : (
+                <SpreadsheetGrid value={gridData} onChange={setGridData} />
+              )}
             </div>
           </>
         ) : (
@@ -275,7 +350,7 @@ export function ProjectCanvas({ projectId, user }: { projectId: string, user: an
             </div>
             <h3 className="text-xl font-bold text-slate-500 mb-2 tracking-tight">Project Notes Selected</h3>
             <p className="max-w-xs text-xs font-medium leading-relaxed uppercase tracking-widest opacity-60">
-              Select or create a page from the sidebar to begin freeform documentation
+              Select or create a page from the sidebar to begin project documentation
             </p>
           </div>
         )}
