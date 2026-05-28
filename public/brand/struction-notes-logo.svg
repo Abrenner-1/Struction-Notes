@@ -1,0 +1,15 @@
+<svg viewBox="0 0 520 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Struction Notes logo">
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="#0F172A"/>
+  <rect x="12" y="12" width="104" height="104" rx="23" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M64 20L97.6 33.2V57.2C97.6 81.8 84 99.2 64 111.2C44 99.2 30.4 81.8 30.4 57.2V33.2L64 20Z" fill="#EA580C"/>
+  <path d="M64 27.2L90.4 37.8V57.4C90.4 76.8 80.2 91.1 64 101.7C47.8 91.1 37.6 76.8 37.6 57.4V37.8L64 27.2Z" stroke="#FDBA74" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M48.4 38H73.6L84.4 48.8V84.8C84.4 88.8 81.2 92 77.2 92H48.4C44.4 92 41.2 88.8 41.2 84.8V45.2C41.2 41.2 44.4 38 48.4 38Z" fill="#F8FAFC"/>
+  <path d="M73.6 38V48.8H84.4" fill="#CBD5E1"/>
+  <path d="M73.6 38V46.4C73.6 47.7 74.7 48.8 76 48.8H84.4" stroke="#94A3B8" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M74.2 54.8H56.2C51.9 54.8 49 57.4 49 60.8C49 64.4 52 66.8 56.2 66.8H69.4C74.1 66.8 77.2 69.4 77.2 73C77.2 76.9 74.1 80 69.2 80H51.4" stroke="#0F172A" stroke-width="6.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50.8 53.6H76M48.4 65.6H79.6M50.8 78.8H73.6" stroke="#EA580C" stroke-width="1.9" stroke-linecap="round" opacity="0.45"/>
+  <path d="M49.6 95.6H78.4" stroke="#FDBA74" stroke-width="4.8" stroke-linecap="round"/>
+  <text x="148" y="57" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="900" letter-spacing="-1.5">STRUCTION</text>
+  <text x="150" y="91" fill="#EA580C" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="7">NOTES</text>
+  <circle cx="389" cy="46" r="4" fill="#EA580C"/>
+</svg>
