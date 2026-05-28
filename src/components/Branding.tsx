@@ -8,41 +8,49 @@ export function StructionLogoIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Struction Notes shield mark"
+      aria-label="Struction Notes structural monogram"
       className={cn("drop-shadow-xl", className)}
     >
       <rect x="5" y="5" width="90" height="90" rx="22" fill="#0B1220" />
       <path
-        d="M50 14L78 25V43.5C78 63.8 66.3 78.4 50 87.5C33.7 78.4 22 63.8 22 43.5V25L50 14Z"
+        d="M29 30C32.8 20 41.6 15 50 15C58.4 15 67.2 20 71 30H29Z"
         fill="#EA580C"
       />
+      <rect x="24" y="28" width="52" height="7" rx="3.5" fill="#FDBA74" />
       <path
-        d="M50 21L71 29.3V43.8C71 59.4 62.8 70.8 50 78.8C37.2 70.8 29 59.4 29 43.8V29.3L50 21Z"
-        fill="#111827"
-      />
-      <path
-        d="M39 31H56.5L64 38.5V65C64 68.3 61.3 71 58 71H39C35.7 71 33 68.3 33 65V37C33 33.7 35.7 31 39 31Z"
-        fill="#F8FAFC"
-      />
-      <path d="M56.5 31V38.5H64" fill="#CBD5E1" />
-      <path
-        d="M56.5 31V36.5C56.5 37.6 57.4 38.5 58.5 38.5H64"
-        stroke="#94A3B8"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M57 45H43.5C40.8 45 39 46.7 39 49C39 51.3 40.8 53 43.5 53H54.5C57.6 53 60 55 60 58C60 61 57.6 63 54.5 63H40.5"
-        stroke="#0B1220"
-        strokeWidth="5.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M39 76H61"
+        d="M45 18V30M55 18V30"
         stroke="#FDBA74"
-        strokeWidth="4"
+        strokeWidth="2.5"
         strokeLinecap="round"
+        opacity="0.85"
+      />
+
+      <g fill="#EA580C">
+        <rect x="20" y="40" width="33" height="8" rx="4" />
+        <rect x="20" y="40" width="8" height="22" rx="4" />
+        <rect x="20" y="55" width="33" height="8" rx="4" />
+        <rect x="45" y="55" width="8" height="22" rx="4" />
+        <rect x="20" y="70" width="33" height="8" rx="4" />
+      </g>
+
+      <g stroke="#0B1220" strokeWidth="1.8" strokeLinecap="round" opacity="0.45">
+        <path d="M28 44H45" />
+        <path d="M28 59H45" />
+        <path d="M28 74H45" />
+      </g>
+
+      <g stroke="#F8FAFC" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M61 41V77" />
+        <path d="M79 41V77" />
+        <path d="M61 41L79 77" />
+      </g>
+
+      <path
+        d="M19 84H81"
+        stroke="#334155"
+        strokeWidth="3"
+        strokeLinecap="round"
+        opacity="0.7"
       />
     </svg>
   );

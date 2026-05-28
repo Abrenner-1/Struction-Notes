@@ -1,12 +1,26 @@
 <svg viewBox="0 0 520 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Struction Notes logo">
   <rect x="8" y="8" width="112" height="112" rx="27" fill="#0B1220"/>
-  <path d="M64 19.2L97.6 32.4V54.6C97.6 79 83.6 96.5 64 107.4C44.4 96.5 30.4 79 30.4 54.6V32.4L64 19.2Z" fill="#EA580C"/>
-  <path d="M64 27.6L89.2 37.6V55C89.2 73.7 79.4 87.4 64 97C48.6 87.4 38.8 73.7 38.8 55V37.6L64 27.6Z" fill="#111827"/>
-  <path d="M50.8 39.6H71.8L80.8 48.6V80.4C80.8 84.4 77.6 87.6 73.6 87.6H50.8C46.8 87.6 43.6 84.4 43.6 80.4V46.8C43.6 42.8 46.8 39.6 50.8 39.6Z" fill="#F8FAFC"/>
-  <path d="M71.8 39.6V48.6H80.8" fill="#CBD5E1"/>
-  <path d="M71.8 39.6V46.2C71.8 47.5 72.9 48.6 74.2 48.6H80.8" stroke="#94A3B8" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M72.4 56.4H56.2C53 56.4 50.8 58.4 50.8 61.2C50.8 64 53 66 56.2 66H69.4C73.1 66 76 68.4 76 72C76 75.6 73.1 78 69.4 78H52.6" stroke="#0B1220" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M50.8 93.6H77.2" stroke="#FDBA74" stroke-width="4.8" stroke-linecap="round"/>
+  <path d="M38.8 39.2C43.4 27.2 53.9 21.2 64 21.2C74.1 21.2 84.6 27.2 89.2 39.2H38.8Z" fill="#EA580C"/>
+  <rect x="32.8" y="36.8" width="62.4" height="8.4" rx="4.2" fill="#FDBA74"/>
+  <path d="M58 24.8V39.2M70 24.8V39.2" stroke="#FDBA74" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <g fill="#EA580C">
+    <rect x="28" y="51.2" width="39.6" height="9.6" rx="4.8"/>
+    <rect x="28" y="51.2" width="9.6" height="26.4" rx="4.8"/>
+    <rect x="28" y="69.2" width="39.6" height="9.6" rx="4.8"/>
+    <rect x="58" y="69.2" width="9.6" height="26.4" rx="4.8"/>
+    <rect x="28" y="87.2" width="39.6" height="9.6" rx="4.8"/>
+  </g>
+  <g stroke="#0B1220" stroke-width="2.2" stroke-linecap="round" opacity="0.45">
+    <path d="M37.6 56H58"/>
+    <path d="M37.6 74H58"/>
+    <path d="M37.6 92H58"/>
+  </g>
+  <g stroke="#F8FAFC" stroke-width="9.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M77.2 52.4V95.6"/>
+    <path d="M98.8 52.4V95.6"/>
+    <path d="M77.2 52.4L98.8 95.6"/>
+  </g>
+  <path d="M26.8 104H101.2" stroke="#334155" stroke-width="3.6" stroke-linecap="round" opacity="0.7"/>
   <text x="148" y="57" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="900" letter-spacing="-1.5">STRUCTION</text>
   <text x="150" y="91" fill="#EA580C" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="7">NOTES</text>
   <circle cx="389" cy="46" r="4" fill="#EA580C"/>
