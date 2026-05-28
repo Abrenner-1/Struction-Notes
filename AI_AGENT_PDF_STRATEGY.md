@@ -71,6 +71,80 @@ This approach is much cheaper and more practical than running a heavy vision mod
 
 It does not fully understand drawing geometry by itself. Dimensions, symbols, visual conflicts, routing, and plan/detail relationships need a later visual layer. The first version should prioritize reliable source extraction, search, and citations.
 
+## Storage And Retrieval Flow
+
+After extraction, Struction Notes should store the original files, extracted text, metadata, and search vectors separately. The AI should not memorize the project. It should retrieve the relevant stored content each time a user asks a question.
+
+```text
+Upload PDF
+        |
+        v
+Store original file
+        |
+        v
+Extract text, OCR, tables, page data, and sheet data
+        |
+        v
+Split extracted content into searchable chunks
+        |
+        v
+Store chunks with source metadata
+        |
+        v
+Generate embeddings for semantic search
+        |
+        v
+User asks a question
+        |
+        v
+Retrieve matching chunks
+        |
+        v
+Send only relevant chunks to the AI
+        |
+        v
+Return answer with citations back to source files/pages/sheets
+```
+
+Recommended storage responsibilities:
+
+| Storage Area | Stores | Purpose |
+| --- | --- | --- |
+| Firebase Storage | Original PDFs, drawing sets, specs, submittals, RFIs, and attachments | Keeps the source files available for download, viewing, and citation links. |
+| Firestore | Document records, page records, sheet numbers, titles, extracted chunks, page references, and processing status | Stores structured project document data used by the app. |
+| Vector database | Embeddings for each extracted text chunk | Enables semantic search, so questions can find relevant text even when wording differs. |
+| AI server | Prompts, retrieval logic, model calls, and response formatting | Connects the app, vector search, and local/cloud AI model. |
+
+Example extracted chunk:
+
+```json
+{
+  "projectId": "usps-wpb",
+  "documentId": "drawing-set-001",
+  "sourceFile": "A-Drawings.pdf",
+  "page": 14,
+  "sheetNumber": "A2.11",
+  "sheetTitle": "Floor Plan - Level 2",
+  "chunkText": "Fire dampers shall be installed at rated wall penetrations...",
+  "boundingBox": {
+    "x": 1200,
+    "y": 850,
+    "width": 420,
+    "height": 90
+  }
+}
+```
+
+When a user asks, "Which sheets mention fire dampers?", the system should:
+
+1. Convert the question into a search embedding.
+2. Search the stored vectors for matching chunks.
+3. Load the matching chunk text and metadata.
+4. Send those chunks to the AI model.
+5. Return an answer with source citations such as file name, page number, and sheet number.
+
+This keeps answers cheaper, faster, and easier to verify because the AI response can point back to the original source material.
+
 ## Recommended Model Stack
 
 | Use Case | Recommended Tool / Model | Why |
