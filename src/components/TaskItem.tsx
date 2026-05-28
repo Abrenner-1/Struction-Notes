@@ -10,6 +10,11 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const taskRef = useRef<HTMLDivElement>(null);
   const isOverdue = task.dueDate && isBefore(task.dueDate.toDate(), new Date()) && !task.completed;
+  const taskTitle = String(task.title || '').replace(/\u00a0/g, ' ');
+  const taskDescription = String(task.description || '');
+  const sanitizedDescription = taskDescription
+    ? DOMPurify.sanitize(taskDescription).replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ')
+    : '';
 
   const handleDelete = async () => {
     await onDelete();
@@ -47,27 +52,27 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
             {task.completed ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Circle className="w-5 h-5 text-slate-300" />}
           </button>
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-            <h4 className={cn("font-bold text-sm text-slate-900 dark:text-slate-100 leading-tight w-full break-normal [word-break:normal] [overflow-wrap:normal] hyphens-none", task.completed ? "line-through text-slate-400" : "group-hover:text-orange-600")}>
-              {task.title}
+            <h4 className={cn("font-bold text-sm text-slate-900 dark:text-slate-100 leading-tight w-full break-words [word-break:normal] [overflow-wrap:break-word] hyphens-none", task.completed ? "line-through text-slate-400" : "group-hover:text-orange-600")}>
+              {taskTitle}
             </h4>
 
-            {task.description && (
+            {taskDescription && (
               <div className="mt-2 relative w-full overflow-hidden">
                 <div 
                   className={cn(
                     "text-[11px] text-slate-500 dark:text-slate-300 leading-relaxed transition-all duration-300 w-full",
-                    "whitespace-pre-wrap break-normal [word-break:normal] [overflow-wrap:normal] hyphens-none",
-                    "[&_*]:whitespace-pre-wrap [&_*]:break-normal [&_*]:[word-break:normal] [&_*]:[overflow-wrap:normal] [&_*]:hyphens-none [&_a]:break-all",
+                    "whitespace-pre-wrap break-words [word-break:normal] [overflow-wrap:break-word] hyphens-none",
+                    "[&_*]:whitespace-pre-wrap [&_*]:break-words [&_*]:[word-break:normal] [&_*]:[overflow-wrap:break-word] [&_*]:hyphens-none [&_a]:break-all",
                     task.completed && "text-slate-300 dark:text-slate-500 line-through",
-                    (!isExpanded && task.description.length > 150) && "max-h-24"
+                    (!isExpanded && taskDescription.length > 150) && "max-h-24"
                   )}
-                  style={(!isExpanded && task.description.length > 150) ? { 
+                  style={(!isExpanded && taskDescription.length > 150) ? { 
                     maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)', 
                     WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)' 
                   } : {}}
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.description) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
                 />
-                {task.description.length > 150 && (
+                {taskDescription.length > 150 && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
                     className="mt-1.5 flex items-center gap-1 text-[9px] font-bold text-orange-500 uppercase tracking-widest hover:text-orange-600"
