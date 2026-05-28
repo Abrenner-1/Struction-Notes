@@ -19,7 +19,7 @@ const QUILL_MODULES = {
   ]
 };
 
-export function NoteModal({ onClose, projectId, user, initialData, nextPosition, onDelete }: { onClose: () => void, projectId: string, user: any, initialData?: Note, nextPosition: number, onDelete?: (id: string) => void }) {
+export function NoteModal({ onClose, projectId, user, initialData, nextPosition, onDelete, onSaved }: { onClose: () => void, projectId: string, user: any, initialData?: Note, nextPosition: number, onDelete?: (id: string) => void, onSaved?: () => void }) {
   const [photoUrl, setPhotoUrl] = useState(initialData?.photoUrls?.[0] || '');
   const [content, setContent] = useState(initialData?.content || '');
   const [backgroundColor, setBackgroundColor] = useState(initialData?.backgroundColor || 'bg-white dark:bg-slate-900');
@@ -96,9 +96,7 @@ export function NoteModal({ onClose, projectId, user, initialData, nextPosition,
           notesArr = [newNote, ...notesArr];
         }
         localStorage.setItem(localKey, JSON.stringify(notesArr));
-        // Force refresh parent if possible - but since we don't have a direct way, 
-        // normally we'd pass a refresh callback. For now, let's assume parent will pick up on onClose if it re-reads.
-        // Actually, ProjectView doesn't re-read on onClose. I should probably add a success callback.
+        onSaved?.();
       } else {
         if (initialData) {
           await updateDoc(doc(db, 'projects', projectId, 'notes', initialData.id), noteData);

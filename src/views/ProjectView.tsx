@@ -488,11 +488,25 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
   };
 
   const deleteNote = async (id: string) => {
+    if (user.uid === 'guest-123') {
+      const updatedNotes = notes.filter((note) => note.id !== id);
+      setNotes(updatedNotes);
+      localStorage.setItem(`guest_notes_${project.id}`, JSON.stringify(updatedNotes));
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'projects', project.id, 'notes', id));
     } catch (err) {
       handleFirestoreError(err, 'delete', `projects/${project.id}/notes/${id}`);
     }
+  };
+
+  const refreshGuestNotes = () => {
+    if (user.uid !== 'guest-123') return;
+
+    const localNotes = localStorage.getItem(`guest_notes_${project.id}`);
+    setNotes(localNotes ? JSON.parse(localNotes) : []);
   };
 
   const deleteTask = async (id: string) => {
@@ -775,6 +789,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             user={user}
             nextPosition={notes.length}
             onDelete={deleteNote}
+            onSaved={refreshGuestNotes}
           />
         )}
         {showAddTask && (
@@ -795,6 +810,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             initialData={editingNote}
             nextPosition={0}
             onDelete={deleteNote}
+            onSaved={refreshGuestNotes}
           />
         )}
         {editingTask && (
