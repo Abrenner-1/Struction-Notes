@@ -8,64 +8,38 @@ export function StructionLogoIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Struction Notes shield document mark"
+      aria-label="Struction Notes shield mark"
       className={cn("drop-shadow-xl", className)}
     >
-      <rect
-        x="4"
-        y="4"
-        width="92"
-        height="92"
-        rx="22"
-        fill="#0F172A"
-      />
-      <rect
-        x="7"
-        y="7"
-        width="86"
-        height="86"
-        rx="19"
-        stroke="#FFFFFF"
-        strokeOpacity="0.1"
-        strokeWidth="2"
-      />
+      <rect x="5" y="5" width="90" height="90" rx="22" fill="#0B1220" />
       <path
-        d="M50 12L78 23V43C78 63.5 66.7 78 50 88C33.3 78 22 63.5 22 43V23L50 12Z"
+        d="M50 14L78 25V43.5C78 63.8 66.3 78.4 50 87.5C33.7 78.4 22 63.8 22 43.5V25L50 14Z"
         fill="#EA580C"
       />
       <path
-        d="M50 18L72 26.8V43.2C72 59.4 63.5 71.3 50 80.1C36.5 71.3 28 59.4 28 43.2V26.8L50 18Z"
-        stroke="#FDBA74"
-        strokeWidth="2"
-        strokeLinejoin="round"
+        d="M50 21L71 29.3V43.8C71 59.4 62.8 70.8 50 78.8C37.2 70.8 29 59.4 29 43.8V29.3L50 21Z"
+        fill="#111827"
       />
       <path
-        d="M37 27H58L67 36V66C67 69.3 64.3 72 61 72H37C33.7 72 31 69.3 31 66V33C31 29.7 33.7 27 37 27Z"
+        d="M39 31H56.5L64 38.5V65C64 68.3 61.3 71 58 71H39C35.7 71 33 68.3 33 65V37C33 33.7 35.7 31 39 31Z"
         fill="#F8FAFC"
       />
-      <path d="M58 27V36H67" fill="#CBD5E1" />
+      <path d="M56.5 31V38.5H64" fill="#CBD5E1" />
       <path
-        d="M58 27V34C58 35.1 58.9 36 60 36H67"
+        d="M56.5 31V36.5C56.5 37.6 57.4 38.5 58.5 38.5H64"
         stroke="#94A3B8"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <path
-        d="M58.5 41H43.5C39.9 41 37.5 43.2 37.5 46C37.5 49 40 51 43.5 51H54.5C58.4 51 61 53.2 61 56.2C61 59.4 58.4 62 54.3 62H39.5"
-        stroke="#0F172A"
-        strokeWidth="5.6"
+        d="M57 45H43.5C40.8 45 39 46.7 39 49C39 51.3 40.8 53 43.5 53H54.5C57.6 53 60 55 60 58C60 61 57.6 63 54.5 63H40.5"
+        stroke="#0B1220"
+        strokeWidth="5.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M39 40H60M37 50H63M39 61H58"
-        stroke="#EA580C"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity="0.45"
-      />
-      <path
-        d="M38 75H62"
+        d="M39 76H61"
         stroke="#FDBA74"
         strokeWidth="4"
         strokeLinecap="round"
@@ -76,14 +50,9 @@ export function StructionLogoIcon({ className }: { className?: string }) {
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div
-      className={cn(
-        "relative flex items-center justify-center overflow-hidden rounded-2xl bg-slate-950 p-1 border border-white/10 shadow-lg group",
-        className,
-      )}
-    >
-      <StructionLogoIcon className="w-full h-full transition-transform duration-500 group-hover:scale-[1.03]" />
-    </div>
+    <StructionLogoIcon
+      className={cn("transition-transform duration-500 hover:scale-[1.03]", className)}
+    />
   );
 }
 
@@ -102,9 +71,7 @@ export function BrandName({
           className,
         )}
       >
-        <div className="w-20 h-20 group">
-          <StructionLogoIcon className="w-full h-full group-hover:scale-105 transition-all duration-500" />
-        </div>
+        <Logo className="w-20 h-20" />
         <div className="flex flex-col items-center">
           <span className="font-black text-3xl tracking-tighter text-slate-100 leading-none drop-shadow-md">
             STRUCTION
@@ -124,9 +91,7 @@ export function BrandName({
         className,
       )}
     >
-      <div className="w-10 h-10 group-hover:scale-110 transition-transform duration-500">
-        <StructionLogoIcon className="w-full h-full" />
-      </div>
+      <Logo className="w-10 h-10 group-hover:scale-110" />
       <div className="flex flex-col">
         <span className="font-black text-2xl tracking-tighter text-slate-100 leading-none drop-shadow-sm">
           STRUCTION
