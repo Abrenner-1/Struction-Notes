@@ -26,7 +26,7 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
     <div 
       ref={taskRef}
       className={cn(
-        "rounded-xl shadow-sm flex items-stretch group border-l-4 h-fit overflow-hidden relative",
+        "rounded-xl shadow-sm flex items-stretch group border-l-4 h-full min-h-[140px] overflow-hidden relative",
         !isDragging && "transition-all",
         task.completed ? "border-l-emerald-500 opacity-60 bg-white dark:bg-slate-900" : 
         isOverdue ? "border-l-red-500 bg-white dark:bg-slate-900" : "border-l-blue-500 bg-white dark:bg-slate-900",
@@ -42,7 +42,7 @@ export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, 
       </div>
 
       <div className="p-4 flex-1 flex flex-col min-w-0 relative">
-        <div className="flex items-start gap-3 pr-28">
+        <div className="flex items-start gap-3 pr-24">
           <button onClick={() => toggleTask(task)} className="mt-1 transition-transform hover:scale-110 shrink-0">
             {task.completed ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Circle className="w-5 h-5 text-slate-300" />}
           </button>

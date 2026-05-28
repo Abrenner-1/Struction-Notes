@@ -19,6 +19,45 @@ import { NoteCard } from '../components/NoteCard';
 import { TaskItem } from '../components/TaskItem';
 import { ProjectCanvas } from './ProjectCanvas';
 
+function getTimestampMillis(value: unknown) {
+  if (value && typeof (value as { toMillis?: unknown }).toMillis === 'function') {
+    return (value as { toMillis: () => number }).toMillis();
+  }
+
+  return 0;
+}
+
+function sortTasks(tasksToSort: Task[]) {
+  return [...tasksToSort].sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
+    const aPosition = typeof a.position === 'number' ? a.position : null;
+    const bPosition = typeof b.position === 'number' ? b.position : null;
+
+    if (aPosition !== null && bPosition !== null && aPosition !== bPosition) {
+      return aPosition - bPosition;
+    }
+
+    if (aPosition !== null) return -1;
+    if (bPosition !== null) return 1;
+
+    const createdAtDiff = getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt);
+    if (createdAtDiff !== 0) return createdAtDiff;
+
+    return (a.title || '').localeCompare(b.title || '');
+  });
+}
+
+function getNextTaskPosition(tasks: Task[]) {
+  const openTaskPositions = tasks
+    .filter((task) => !task.completed && typeof task.position === 'number')
+    .map((task) => task.position as number);
+
+  if (openTaskPositions.length === 0) return 0;
+
+  return Math.min(...openTaskPositions) - 1;
+}
+
 export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onBack }: { 
   project: Project, 
   user: any,
@@ -89,7 +128,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
       if (localNotes) setNotes(JSON.parse(localNotes));
       
       const localTasks = localStorage.getItem(`guest_tasks_${project.id}`);
-      if (localTasks) setTasks(JSON.parse(localTasks));
+      if (localTasks) setTasks(sortTasks(JSON.parse(localTasks)));
 
       const localSchedule = localStorage.getItem(`guest_schedule_${project.id}`);
       if (localSchedule) setScheduleItems(JSON.parse(localSchedule));
@@ -121,14 +160,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
     });
     const unsubTasks = onSnapshot(tasksQ, (snap) => {
       const fetchedTasks = snap.docs.map(d => ({ id: d.id, ...d.data() } as Task));
-      fetchedTasks.sort((a, b) => {
-        if (a.position !== undefined && b.position !== undefined) return a.position - b.position;
-        if (a.position !== undefined) return -1;
-        if (b.position !== undefined) return 1;
-        if (a.completed !== b.completed) return a.completed ? 1 : -1;
-        return (a.dueDate?.toMillis() || 0) - (b.dueDate?.toMillis() || 0) || 0;
-      });
-      setTasks(fetchedTasks);
+      setTasks(sortTasks(fetchedTasks));
     }, (error) => {
       console.error("Listing Tasks Error:", error);
       handleFirestoreError(error, 'list', `projects/${project.id}/tasks`);
@@ -185,9 +217,10 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
         localStorage.setItem(`guest_notes_${project.id}`, JSON.stringify(updatedNotes));
       }
     } else {
-      setTasks(sourceItems as Task[]);
+      const updatedTasks = sortTasks(sourceItems as Task[]);
+      setTasks(updatedTasks);
       if (user.uid === 'guest-123') {
-        localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(sourceItems));
+        localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(updatedTasks));
       }
     }
 
@@ -218,17 +251,21 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
   };
 
   const toggleTask = async (task: Task) => {
+    const updatedTasks = sortTasks(tasks.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+
     if (user.uid === 'guest-123') {
-      const updated = tasks.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t);
-      setTasks(updated);
-      localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(updated));
+      setTasks(updatedTasks);
+      localStorage.setItem(`guest_tasks_${project.id}`, JSON.stringify(updatedTasks));
       return;
     }
+
+    setTasks(updatedTasks);
     try {
       await updateDoc(doc(db, 'projects', project.id, 'tasks', task.id), {
         completed: !task.completed
       });
     } catch (err) {
+      setTasks(tasks);
       handleFirestoreError(err, 'update', `projects/${project.id}/tasks/${task.id}`);
     }
   };
@@ -330,7 +367,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
         completed: false,
         ownerId: auth.currentUser?.uid || '',
         createdAt: serverTimestamp(),
-        position: tasks.length
+        position: getNextTaskPosition(tasks)
       });
 
       await batch.commit();
@@ -640,7 +677,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                     <div 
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className="flex flex-col gap-4 max-w-3xl"
+                      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
                     >
                       {tasks.map((task, index) => (
                         // @ts-ignore
@@ -650,6 +687,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
                               ref={provided.innerRef} 
                               {...provided.draggableProps}
                               className={cn(
+                                "h-full",
                                 snapshot.isDragging ? "shadow-2xl z-50 ring-2 ring-orange-500/20 rounded-xl bg-white dark:bg-slate-900" : ""
                               )}
                             >
@@ -709,7 +747,7 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
             projectId={project.id} 
             projectName={project.name}
             user={user}
-            nextPosition={tasks.length}
+            nextPosition={getNextTaskPosition(tasks)}
             onDelete={deleteTask}
           />
         )}
