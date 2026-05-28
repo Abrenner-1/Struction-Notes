@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Edit3, Image as ImageIcon, ChevronRight, X, Clock, MapPin, GripVertical, FileSpreadsheet, LayoutGrid, CheckCircle2, ChevronDown, Plus, LogOut, Search, Trash, Calendar, FileText, Bell, HardHat, PanelLeftClose, PanelLeftOpen, User, Circle, Settings } from 'lucide-react';
-import { formatDistanceToNow, format, isSameDay, isBefore } from 'date-fns';
-import { db, auth, handleFirestoreError, logout } from '../lib/firebase';
-import { doc, updateDoc, deleteDoc, collection, addDoc, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
-import { Task, Note, ProjectPage, Project, NoteType, ScheduleItem } from '../types';
+import { useEffect, useRef, useState } from 'react';
+import { Bell, CheckCircle2, ChevronDown, Circle, GripVertical, Settings, Trash2 } from 'lucide-react';
+import { format, isBefore } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
 import { cn } from '../lib/utils';
 import DOMPurify from 'dompurify';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 export function TaskItem({ task, toggleTask, setEditingTask, onDelete, project, isHighlighted, dragHandleProps, isDragging }: any) {
   const [isExpanded, setIsExpanded] = useState(false);

@@ -7,3 +7,9 @@ coverage/
 .env*
 !.env.example
 firebase-applet-config.json
+
+# Local/generated cleanup artifacts
+files.txt
+errors.txt
+debug_images.sh
+scratch/

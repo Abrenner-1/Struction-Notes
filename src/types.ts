@@ -28,6 +28,11 @@ export interface ProcurementItem {
   createdAt: Timestamp;
 }
 
+export interface TeamMember {
+  initials: string;
+  color: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -37,7 +42,7 @@ export interface Project {
   projectManager?: string;
   lastEditedBy?: string;
   ownerId: string;
-  teamMembers?: { initials: string, color: string }[];
+  teamMembers?: TeamMember[];
   createdAt: Timestamp;
   updatedAt?: Timestamp;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ChevronDown, Plus, FileText, CheckCircle2, ChevronRight, Edit3, Trash } from 'lucide-react';
+import { Search, ChevronDown, Plus, FileText, CheckCircle2, ChevronRight, Edit3, Trash, LayoutDashboard, StickyNote, Package, ClipboardList, Users } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { db, auth, handleFirestoreError } from '../lib/firebase';
 import { collection, query, onSnapshot, writeBatch, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, where, Timestamp, orderBy } from 'firebase/firestore';
@@ -15,10 +15,6 @@ import { NoteModal } from '../components/modals/NoteModal';
 import { TaskModal } from '../components/modals/TaskModal';
 import { ConfirmClearModal } from '../components/modals/ConfirmClearModal';
 import { cn } from '../lib/utils';
-// Note: We need NoteCard, TaskItem, and ProjectCanvas still.
-// Since we haven't extracted them yet, they will temporarily be broken until App.tsx is fully split, 
-// or we must import them from App.tsx (which is a circular dependency). 
-// For now, let's assume they'll be extracted to components.
 import { NoteCard } from '../components/NoteCard';
 import { TaskItem } from '../components/TaskItem';
 import { ProjectCanvas } from './ProjectCanvas';
@@ -431,70 +427,77 @@ export function ProjectView({ project, user, onEditRequest, onDeleteRequest, onB
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'dashboard' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <LayoutDashboard className="w-3.5 h-3.5 opacity-70" />
           Dashboard
           {activeTab === 'dashboard' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('canvas')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'canvas' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <StickyNote className="w-3.5 h-3.5 opacity-70" />
           Project Notes
           {activeTab === 'canvas' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('tasks')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'tasks' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <CheckCircle2 className="w-3.5 h-3.5 opacity-70" />
           Tasks
           {activeTab === 'tasks' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('notes')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'notes' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <FileText className="w-3.5 h-3.5 opacity-70" />
           Documentation
           {activeTab === 'notes' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('procurement')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'procurement' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <Package className="w-3.5 h-3.5 opacity-70" />
           Procurement Log
           {activeTab === 'procurement' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('registers')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'registers' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <ClipboardList className="w-3.5 h-3.5 opacity-70" />
           Project Registers
           {activeTab === 'registers' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>
         <button 
           onClick={() => setActiveTab('meetings')}
           className={cn(
-            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2",
             activeTab === 'meetings' ? "text-slate-900 dark:text-slate-100" : "text-slate-400 hover:text-slate-600 dark:text-slate-400"
           )}
         >
+          <Users className="w-3.5 h-3.5 opacity-70" />
           Meetings
           {activeTab === 'meetings' && <motion.div layoutId="tab" className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />}
         </button>

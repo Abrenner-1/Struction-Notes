@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Edit3, Image as ImageIcon, ChevronRight, X, Clock, MapPin, GripVertical, FileSpreadsheet, LayoutGrid, CheckCircle2, ChevronDown, Plus, LogOut, Search, Trash, Calendar, FileText, Bell, HardHat, PanelLeftClose, PanelLeftOpen, User, BookOpen, Save } from 'lucide-react';
-import { formatDistanceToNow, format, isSameDay } from 'date-fns';
-import { db, auth, handleFirestoreError, logout } from '../lib/firebase';
-import { doc, updateDoc, deleteDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { Task, Note, ProjectPage, Project, NoteType, ScheduleItem } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
+import { BookOpen, Clock, Edit3, FileText, PanelLeftClose, PanelLeftOpen, Plus, Save, Search, Trash } from 'lucide-react';
+import { format } from 'date-fns';
+import { db, auth, handleFirestoreError } from '../lib/firebase';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc } from 'firebase/firestore';
+import type { ProjectPage } from '../types';
 import { cn } from '../lib/utils';
-import DOMPurify from 'dompurify';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-
 import ReactQuill from 'react-quill-new';
 
 const QUILL_MODULES = {

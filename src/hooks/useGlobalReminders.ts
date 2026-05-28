@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { collectionGroup, query, where, onSnapshot } from 'firebase/firestore';
 import { isBefore, isAfter, subDays } from 'date-fns';
 import { db } from '../lib/firebase';
@@ -10,25 +10,25 @@ export interface Notification {
   projectId: string;
 }
 
-export function useGlobalReminders(user: any) {
+export function useGlobalReminders(user: any, isGuest = false) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const shownNotificationsRef = useRef<Set<string>>(new Set());
 
-  const addNotification = (id: string, title: string, projectId: string) => {
+  const addNotification = useCallback((id: string, title: string, projectId: string) => {
     if (shownNotificationsRef.current.has(id)) return;
     setNotifications(prev => {
       if (prev.some(n => n.id === id)) return prev;
       return [...prev, { id, title, projectId }];
     });
     shownNotificationsRef.current.add(id);
-  };
+  }, []);
 
-  const removeNotification = (id: string) => {
+  const removeNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+  }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isGuest) return;
     
     // Listen to all tasks across all projects for this user
     // Note: To truly optimize this, a schema change to include `hasReminder: true` 
@@ -73,7 +73,7 @@ export function useGlobalReminders(user: any) {
       unsubscribe();
       clearInterval(interval);
     };
-  }, [user]);
+  }, [addNotification, isGuest, user]);
 
   return { notifications, removeNotification };
 }

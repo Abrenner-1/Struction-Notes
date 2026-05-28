@@ -1,20 +1,89 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Struction Notes
 
-# Run and deploy your AI Studio app
+Struction Notes is a React/Vite field operations app for construction project tracking, site notes, tasks, registers, procurement, meetings, daily reports, audio capture, and AI-assisted document workflows.
 
-This contains everything you need to run your app locally.
+## Tech Stack
 
-View your app in AI Studio: https://ai.studio/apps/42aee981-bd59-41fa-ac23-28f08f7137a1
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Firebase Authentication and Firestore
+- Gemini API integrations
 
-## Run Locally
+## Prerequisites
 
-**Prerequisites:**  Node.js
+- Node.js 18 or newer
+- npm
+- Firebase project configuration
+- Gemini API key for AI features
 
+## Setup
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+   ```bash
+   npm install
+   ```
+
+2. Create `.env.local` from `.env.example` and add your keys.
+
+   At minimum, AI features expect:
+
+   ```bash
+   GEMINI_API_KEY="your_gemini_api_key"
+   ```
+
+   Firebase values can also be provided with these Vite environment variables:
+
+   ```bash
+   VITE_FIREBASE_PROJECT_ID=""
+   VITE_FIREBASE_APP_ID=""
+   VITE_FIREBASE_API_KEY=""
+   VITE_FIREBASE_AUTH_DOMAIN=""
+   VITE_FIREBASE_DATABASE_ID=""
+   VITE_FIREBASE_STORAGE_BUCKET=""
+   ```
+
+3. Start the local dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+   On Windows PowerShell, if script execution policy blocks `npm`, use:
+
+   ```bash
+   npm.cmd run dev
+   ```
+
+4. Open:
+
+   ```text
+   http://localhost:3000
+   ```
+
+## Scripts
+
+- `npm run dev` starts Vite on port 3000.
+- `npm run lint` runs TypeScript validation with `tsc --noEmit`.
+- `npm run build` creates a production build in `dist/`.
+- `npm run preview` previews the production build.
+- `npm run clean` removes `dist/`.
+
+## Validation
+
+Before committing changes, run:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Repository
+
+Remote origin:
+
+```text
+https://github.com/Abrenner-1/Struction-Notes.git
+```
