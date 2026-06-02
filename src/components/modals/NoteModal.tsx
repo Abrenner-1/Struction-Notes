@@ -136,7 +136,7 @@ export function NoteModal({ onClose, projectId, user, initialData, nextPosition,
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl p-8 shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col max-h-[92vh]"
       >
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -199,7 +199,7 @@ export function NoteModal({ onClose, projectId, user, initialData, nextPosition,
                 value={content} 
                 onChange={setContent}
                 placeholder="Enter primary observations, measurements, or status updates..."
-                className="quill-editor-standard"
+                className="quill-editor-standard quill-editor-documentation"
                 modules={modules}
               />
             </div>

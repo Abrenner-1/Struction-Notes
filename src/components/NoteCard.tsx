@@ -146,10 +146,10 @@ export function NoteCard({ note, onDelete, onEdit, isHighlighted, dragHandleProp
         <div className="relative">
           <div 
             className={cn(
-              "text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose prose-slate dark:prose-invert prose-sm max-w-none break-words overflow-hidden transition-all duration-300",
+              "rich-text-preview text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose prose-slate dark:prose-invert prose-sm max-w-none break-words overflow-hidden transition-all duration-300",
               "hyphens-none text-wrap-pretty whitespace-pre-wrap [word-break:normal] [overflow-wrap:break-word]",
               "[&_*]:whitespace-pre-wrap [&_*]:break-words [&_*]:[word-break:normal] [&_*]:[overflow-wrap:break-word] [&_*]:hyphens-none [&_a]:break-all",
-              "[&_*]:dark:!text-slate-300 [&_*]:dark:!bg-transparent",
+              "[&_*]:dark:!text-slate-300",
               !isExpanded && "max-h-[30rem]" 
             )}
             style={!isExpanded ? { maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' } : {}}

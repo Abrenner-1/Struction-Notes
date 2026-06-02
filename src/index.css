@@ -95,6 +95,9 @@
   .quill-editor-standard .ql-container {
     height: 200px !important;
   }
+  .quill-editor-documentation .ql-container {
+    height: clamp(320px, 42vh, 520px) !important;
+  }
   .quill-editor-full {
     display: flex !important;
     flex-direction: column !important;
@@ -115,5 +118,13 @@
   }
   .meetings-view-only .ql-editor {
     padding: 0 !important;
+  }
+
+  .rich-text-preview span[style*="background-color"],
+  .rich-text-preview span[style*="background:"] {
+    border-radius: 0.125rem;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding: 0 0.125rem;
   }
 }
