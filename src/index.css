@@ -83,26 +83,12 @@
   .ql-editor p {
     margin-bottom: 0.5rem;
   }
-  /* Restore basic list styles for Quill exported HTML */
-  .ql-editor ul {
-    list-style-type: disc !important;
-    padding-left: 1.5rem !important;
-    margin-bottom: 0.5rem;
-  }
-  .ql-editor ul li, .ql-editor ol li {
-    list-style-type: inherit !important;
-    padding-left: 0 !important; /* let browser handle marker spacing */
-    margin-bottom: 0.25rem;
-    display: list-item !important;
-  }
+  .ql-editor ul,
   .ql-editor ol {
-    list-style-type: decimal !important;
-    padding-left: 1.5rem !important;
     margin-bottom: 0.5rem;
   }
-  /* Hide the Quill injected UI spans if browser markers are used */
-  .ql-editor li > .ql-ui {
-    display: none !important;
+  .ql-editor li {
+    margin-bottom: 0.25rem;
   }
 
   /* Quill Layout Helpers */

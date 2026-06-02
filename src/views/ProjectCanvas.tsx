@@ -15,10 +15,51 @@ const QUILL_MODULES = {
     [{ 'header': [1, 2, 3, false] }],
     ['bold', 'italic', 'underline', 'strike'],
     ['blockquote', 'code-block'],
-    [{'list': 'ordered'}, {'list': 'bullet'}],
+    [{'list': 'ordered'}, {'list': 'bullet'}, { 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'color': [] }, { 'background': [] }],
     ['clean']
-  ]
+  ],
+  keyboard: {
+    bindings: {
+      indentListWithTab: {
+        key: 9,
+        handler(this: any, _range: unknown, context: any) {
+          if (context?.format?.list) {
+            this.quill.format('indent', '+1', 'user');
+            return false;
+          }
+
+          return true;
+        },
+      },
+      outdentListWithShiftTab: {
+        key: 9,
+        shiftKey: true,
+        handler(this: any, _range: unknown, context: any) {
+          if (context?.format?.list) {
+            this.quill.format('indent', '-1', 'user');
+            return false;
+          }
+
+          return true;
+        },
+      },
+      removeEmptyListOnBackspace: {
+        key: 8,
+        collapsed: true,
+        empty: true,
+        handler(this: any, _range: unknown, context: any) {
+          if (context?.format?.list) {
+            this.quill.format('list', false, 'user');
+            this.quill.format('indent', false, 'user');
+            return false;
+          }
+
+          return true;
+        },
+      },
+    },
+  },
 };
 
 type ProjectNotesEditorMode = 'document' | 'grid';
